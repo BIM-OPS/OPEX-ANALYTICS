@@ -1,0 +1,25 @@
+Sent to Finance (Non DHS) = CALCULATE(
+    MIN('CALENDAR'[Date]),
+    FILTER(
+        'CALENDAR',
+        'CALENDAR'[Date] > 'Data Source'[Create Date] && 'CALENDAR'[If work day] = 1
+    )
+)
+
+Finance Efficiency Non DHS = IF( NOT(ISBLANK('Data Source'[STOP Batches dummay])), "Finance Processing within 6 days",IF(ISBLANK('Data Source'[Payment Date]),"Finance Exceeding 6 days",IF(NETWORKDAYS('Data Source'[Sent to Finance (Non DHS)],'Data Source'[Payment Date],7,'Eids Vacation')<=6,"Finance Processing within 6 days","Finance Exceeding 6 days")))
+
+Claims Efficiency Non_DHS = IF(ISBLANK('Data Source'[Batch Received Date]),BLANK(),IF(NETWORKDAYS('Data Source'[Batch Received Date],'Data Source'[Create Date],7,'Eids Vacation')<=4,"Claims Processing within 4 days","Claims Exceeding 4 days"))
+
+Sent to Finance (DHS) = VAR StartDate = 'Data Source'[Batch Received Date]
+Var bussiness = FILTER('CALENDAR','CALENDAR'[Date] >  StartDate && 'CALENDAR'[If work day] = 1 )
+ 
+return
+MAXX(TOPN(2,bussiness,'CALENDAR'[Date],ASC),'CALENDAR'[Date])
+
+
+Finance Efficiency DHS = IF( NOT(ISBLANK('Data Source'[STOP Batches dummay])),"Finance Processing within 7 days",IF(ISBLANK('Data Source'[Payment Date]),"Finance Exceeding 7 days",IF(NETWORKDAYS('Data Source'[Sent to Finance (DHS)],'Data Source'[Payment Date],7,'Eids Vacation')<=7,"Finance Processing within 7 days","Finance Exceeding 7 days")))
+
+
+Claims Efficiency DHS = IF(ISBLANK('Data Source'[Batch Received Date]),"Claims ",IF(NETWORKDAYS('Data Source'[Batch Received Date],'Data Source'[Create Date],7,'Eids Vacation')<=3,"Claims Processing within 3 days","Claims Exceeding 3 days"))
+
+Over all = IF(NOT(ISBLANK('Data Source'[Exculde_Providers])), "Within 10 Days", IF( NOT(ISBLANK('Data Source'[STOP Batches dummay])), "Within 10 Days", IF( ISBLANK('Data Source'[Payment Date]),IF( NETWORKDAYS('Data Source'[Batch Received Date], TODAY(), 7, 'Eids Vacation') <= 10,"Within 10 Days",    "Late"  ), IF(NETWORKDAYS('Data Source'[Batch Received Date], 'Data Source'[Payment Date], 7, 'Eids Vacation') <= 10, "Within 10 Days","Late"))))
