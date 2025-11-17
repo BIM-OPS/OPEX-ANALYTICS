@@ -1,0 +1,5 @@
+NetBilling = CALCULATE(SUM('Main data'[Value]),'Main data'[Billing Cat] = "NET Billed - VAT")
+TOTAL CLAIM REJECTION = Var _Result = CALCULATE(SUM('Main data'[Value]),'Main data'[Billing Cat]in {"A. Appropriateness of Care","B. Technical_Contractual","B.1 Pricelist Shortfall / Billed Above Contractual /Agreed Pricing","C. Policy Compliance","D. Pre-Authorisation","E.Unwarranted Variations","H. Pharmacy Benefit Management","Invalid Membership","Difference in Computation","Claims Not Received","Invalid Service Code","Late Submssion","pending","Discount Difference","Deductible Difference"}) Return   IF(_Result = 0 , BLANK(),_Result)
+Approved to paid amount =  VAR _Appro =   CALCULATE      SUM('Main data'[Value]),'Main data'[Billing Cat] = "APPROVED to Pay" && 'Main data'[Value] > 0) RETURN _Appro
+Count of Batch Ids = CALCULATE(DISTINCTCOUNT('Main data'[Batch ID]))
+CCU count = CALCULATE(SUM('Main data'[Value]),'Main data'[Billing Cat] = "CCU Invoice Count")
