@@ -1,0 +1,2331 @@
+with 
+MR_MEMBER10 as 
+    (select 
+           MR_MEMBER.CONT_NO,
+           MR_MEMBER.MBR_NO,
+           MR_MEMBER.MBRSHP_NO,
+           MR_MEMBER.SEX,
+           MR_MEMBER.DOB
+     from 
+            ( 
+                   ( 
+                          ( 
+                                 ( 
+                                        ( 
+                                              BUPAProd..CSR.MR_MEMBER MR_MEMBER
+                                        left outer  join 
+                                              BUPAProd..CSR.SY_SYS_CODE SY_SYS_CODE
+                                        on MR_MEMBER.MARITAL_STATUS = RTRIM ( SY_SYS_CODE.SYS_CODE )  and SY_SYS_CODE.SYS_TYPE = 'MARITAL_STATUS      ' ) 
+                                 left outer  join 
+                                       BUPAProd..CSR.MR_PROFESSION PROF
+                                 on MR_MEMBER.CCHI_JOB_CODE = PROF.PROF_CODE ) 
+                          left outer  join 
+                                BUPAProd..CSR.SY_SYS_CODE DR
+                          on MR_MEMBER.DEL_REASON = RTRIM ( DR.SYS_CODE )  and DR.SYS_TYPE = 'WEB_SUB_REASON      ' ) 
+                   left outer  join 
+                         BUPAProd..CSR.CT_PCC_MANAGER pcc
+                   on MR_MEMBER.PCC_MGR = pcc.EMP_ID ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_COUNTRY_CODE SY_COUNTRY_CODE
+            on MR_MEMBER.CTRY_CODE = SY_COUNTRY_CODE.SYS_CODE ) 
+     where MR_MEMBER.CONT_NO <> '49738600'),
+CL_BATCH_HEADER7 as 
+    (select 
+           CL_BATCH_HEADER.BATCH_ID,
+           CL_BATCH_HEADER.PROV_CODE,
+           CL_BATCH_HEADER.RCV_DATE,
+           CL_BATCH_HEADER.PERIOD,
+           CL_BATCH_HEADER.CLAIM_TYPE,
+           CL_BATCH_HEADER.SERV_TYPE,
+           CL_BATCH_HEADER.INVOICES,
+           CL_BATCH_HEADER.STM_SENT_DATE1,
+           CL_BATCH_HEADER.BILL_PRESENT_AMT,
+           CL_BATCH_HEADER.BILL_DISC_AMT,
+           CL_BATCH_HEADER.BILL_DEDUCT_AMT,
+           CL_BATCH_HEADER.CRT_DATE,
+           CL_BATCH_HEADER.NOTES,
+           CL_BATCH_HEADER.UN_HOLD_DATE,
+           CL_BATCH_HEADER.VAT_AMT,
+           SY_STATUS_BATCH_HEADER.EDESC as BATCH_STATUS_DESC,
+           CL_BATCH_HEADER.BATCH_TYPE_DESC as BATCH_TYPE2,
+           SYS_SUBMIS_TYPE.EDESC as CLM_SUBMISSION_TYPE,
+           CL_BATCH_HEADER.TPA
+     from 
+            ( 
+                   ( 
+                         BUPAProd..CSR.CL_BATCH_HEADER CL_BATCH_HEADER
+                   inner  join 
+                         BUPAProd..CSR.SY_STATUS_BATCH_HEADER SY_STATUS_BATCH_HEADER
+                   on CL_BATCH_HEADER.STATUS = SY_STATUS_BATCH_HEADER.SYS_CODE ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_SYS_CODE SYS_SUBMIS_TYPE
+            on CL_BATCH_HEADER.CLM_SUBMIS_TYPE = SYS_SUBMIS_TYPE.SYS_CODE and SYS_TYPE = 'CLM_SUBMISSION_TYPE' ) ),
+PV_PROVIDER8 as 
+    (select 
+           PV_PROVIDER.PROV_CODE,
+           PV_PROVIDER.PV_RANK
+     from 
+            ( 
+                   ( 
+                          ( 
+                                 ( 
+                                        ( 
+                                               ( 
+                                                      ( 
+                                                            BUPAProd..CSR.PV_PROVIDER PV_PROVIDER
+                                                      inner  join 
+                                                            BUPAProd..CSR.DC_DISTRICT DC_DISTRICT
+                                                      on PV_PROVIDER.CORR_DIST_CODE = DC_DISTRICT.DIST_CODE ) 
+                                               left outer  join 
+                                                     BUPAProd..CSR.SY_PROVIDER_LEVEL SY_PROVIDER_LEVEL1
+                                               on PV_PROVIDER.PROV_LEVEL = SY_PROVIDER_LEVEL1.SYS_CODE ) 
+                                        left outer  join 
+                                              BUPAProd..CSR.SY_PRACTICE_TYPE SY_PRACTICE_TYPE
+                                        on PV_PROVIDER.PRACTICE_TYPE = SY_PRACTICE_TYPE.SYS_CODE ) 
+                                 left outer  join 
+                                       BUPAProd..CSR.PV_PROV_LVL_MVMNT
+                                 on PV_PROVIDER.PROV_CODE = PV_PROV_LVL_MVMNT.PROV_CODE ) 
+                          left outer  join 
+                                BUPAProd..CSR.SY_PROVIDER_LEVEL SY_PROVIDER_LEVEL2
+                          on PV_PROV_LVL_MVMNT.PROV_LEVEL = SY_PROVIDER_LEVEL2.SYS_CODE ) 
+                   left outer  join 
+                         BUPAProd..CSR.SY_SYS_CODE VRS
+                   on trim ( VRS.SYS_CODE )  = PV_PROVIDER.VAT_REG_STATUS and trim ( VRS.SYS_TYPE )  = 'VAT_REG_STATUS' ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_SYS_CODE CTC
+            on trim ( CTC.SYS_CODE )  = PV_PROVIDER.CTRY_CODE and trim ( CTC.SYS_TYPE )  = 'COUNTRY_CODE' ) 
+     where PV_PROV_LVL_MVMNT.END_DATE is null and PV_PROVIDER.PRACTICE_TYPE <> 280),
+BF_CLM_PAYMENT11 as 
+    (select 
+           *
+     from 
+           BUPAProd..CSR.BF_CLM_PAYMENT_V BF_CLM_PAYMENT_V
+     where BF_CLM_PAYMENT_V.DELETED_IND = 'N'),
+SY_PV_PAY_TYPE as 
+    (select 
+           SYS_CODE,
+           EDESC as PV_PAY_TYPE
+     from 
+           BUPAProd..CSR.SY_SYS_CODE
+     where SYS_TYPE = 'PAY_TYPE'),
+BF_CLM_PAYMENT1 as 
+    (select 
+           *
+     from 
+           BUPAProd..CSR.BF_CLM_PAYMENT
+     where BF_CLM_PAYMENT.DELETED_IND = 'N'),
+SY_PROVIDER_RANK as 
+    (select 
+           SYS_CODE,
+           EDESC as PV_RANK
+     from 
+           BUPAProd..CSR.SY_SYS_CODE
+     where SYS_TYPE = 'PV_RANK'),
+D as 
+    (select 
+           CL_BATCH_HEADER7.BATCH_ID  as  Batch_ID,
+           CL_BATCH_HEADER7.RCV_DATE  as  Batch_Received_Date,
+           case when (CL_BATCH_HEADER7.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER7.RCV_DATE else CL_BATCH_HEADER7.UN_HOLD_DATE end   as  c3,
+           CL_BATCH_HEADER7.CRT_DATE  as  Create_Date,
+           CL_BATCH_HEADER7.STM_SENT_DATE1  as  C_1_Sent_to_Provider_Date,
+           CL_BATCH_HEADER7.PERIOD  as  Batch_Period,
+           to_date((((substring(CL_BATCH_HEADER7.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER7.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD')  as  Date_of_Batch__Custom_,
+           trim(PV_PROVIDER8.PROV_CODE)  as  Provider_Code,
+           case 
+             when CL_BATCH_HEADER7.SERV_TYPE = 'OP' then 'OP Package'
+             when CL_BATCH_HEADER7.CLAIM_TYPE = 'I' then 'In Patient'
+             when CL_BATCH_HEADER7.CLAIM_TYPE = 'O' then 'Out Patient'
+             else 'Both'
+           end  as  Batch_Type,
+           case when (CL_BATCH_HEADER7.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+             else 'NON-INTEGRATION'
+           end  as  PP_Batch_Type__Custom_,
+           CL_BATCH_HEADER7.BATCH_TYPE2  as  Batch_Type_2,
+           case 
+             when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+             when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER7.TPA = 'TPA')) then 'Aramco'
+             else 'Other'
+           end  as  Customer_Flag__Custom_,
+           CL_BATCH_HEADER7.BATCH_STATUS_DESC  as  Batch_Status,
+           CL_BATCH_HEADER7.CLM_SUBMISSION_TYPE  as  Claim_Submission_Type,
+           case 
+             when PV_PROVIDER8.PV_RANK = 'T20' then 'a. Top 20'
+             when PV_PROVIDER8.PV_RANK = 'T50' then 'b. Top 50'
+             when PV_PROVIDER8.PV_RANK = 'T100' then 'c. Top 100'
+             when PV_PROVIDER8.PV_RANK = 'A100' then 'd. Above 100'
+             else ('e. ' || SY_PROVIDER_RANK.PV_RANK)
+           end  as  Provider_Rank,
+           case 
+             when case 
+                   when PV_PROVIDER8.PV_RANK = 'T20' then 'a. Top 20'
+                   when PV_PROVIDER8.PV_RANK = 'T50' then 'b. Top 50'
+                   when PV_PROVIDER8.PV_RANK = 'T100' then 'c. Top 100'
+                   when PV_PROVIDER8.PV_RANK = 'A100' then 'd. Above 100'
+                   else ('e. ' || SY_PROVIDER_RANK.PV_RANK)
+                 end = 'e. Governmental' then 'Government'
+             else 'Non-Government'
+           end  as  Provider_Rank__Custom_,
+           CL_BATCH_HEADER7.TPA  as  TPA_Batch,
+           case 
+             when CL_BATCH_HEADER7.TPA = 'N' then 'NON TPA'
+             when CL_BATCH_HEADER7.TPA = 'Y' then 'TPA'
+             else CL_BATCH_HEADER7.TPA
+           end  as  TPA_Batch__Custom_,
+           MR_MEMBER10.MBRSHP_NO  as  Bupa_ID,
+           MR_MEMBER10.SEX  as  Member_Gender,
+           case 
+             when (_years_between({sysdate},MR_MEMBER10.DOB) <= 10) then '0 to 10'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) between 11 and 20) then '11 to 20'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) between 21 and 30) then '21 to 30'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) between 31 and 40) then '31 to 40'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) between 41 and 50) then '41 to 50'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) between 51 and 60) then '51 to 60'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) > 60) then '> 60'
+             else 'Unknown'
+           end  as  Age_Group__Custom_,
+           case 
+             when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+             when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+             when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%NON-PP%') then 'Non PP'
+             else null
+           end  as  Delay_Reason__Custom_,
+           ((nvl(CL_BATCH_HEADER7.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER7.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER7.BILL_DEDUCT_AMT,0))  as  PROV_Netbilled,
+           CL_BATCH_HEADER7.VAT_AMT  as  VAT_AMT,
+           CL_BATCH_HEADER7.INVOICES  as  CCU_Invoice_Count,
+           case when (BF_CLM_PAYMENT11.PAY_METHOD = 'AT') then BF_CLM_PAYMENT11.EFT_DATE else BF_CLM_PAYMENT11.CHQ_DATE end   as  Payment_Date,
+           SY_PV_PAY_TYPE.PV_PAY_TYPE  as  Payment_Type,
+           (((nvl(CL_BATCH_HEADER7.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER7.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER7.BILL_DEDUCT_AMT,0)) + CL_BATCH_HEADER7.VAT_AMT)  as  rc,
+           RSUM(1  at CL_BATCH_HEADER7.BATCH_ID,CL_BATCH_HEADER7.RCV_DATE,case when (CL_BATCH_HEADER7.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER7.RCV_DATE else CL_BATCH_HEADER7.UN_HOLD_DATE end ,CL_BATCH_HEADER7.CRT_DATE,CL_BATCH_HEADER7.STM_SENT_DATE1,CL_BATCH_HEADER7.PERIOD,to_date((((substring(CL_BATCH_HEADER7.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER7.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD'),trim(PV_PROVIDER8.PROV_CODE),case 
+  when CL_BATCH_HEADER7.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER7.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER7.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end,case when (CL_BATCH_HEADER7.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end,CL_BATCH_HEADER7.BATCH_TYPE2,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER7.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end,CL_BATCH_HEADER7.BATCH_STATUS_DESC,CL_BATCH_HEADER7.CLM_SUBMISSION_TYPE,case 
+  when PV_PROVIDER8.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER8.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER8.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER8.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK.PV_RANK)
+end,case 
+  when case 
+        when PV_PROVIDER8.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER8.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER8.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER8.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end,CL_BATCH_HEADER7.TPA,case 
+  when CL_BATCH_HEADER7.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER7.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER7.TPA
+end,MR_MEMBER10.MBRSHP_NO,MR_MEMBER10.SEX,case 
+  when (_years_between({sysdate},MR_MEMBER10.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) > 60) then '> 60'
+  else 'Unknown'
+end,case 
+  when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end,((nvl(CL_BATCH_HEADER7.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER7.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER7.BILL_DEDUCT_AMT,0)),CL_BATCH_HEADER7.VAT_AMT,CL_BATCH_HEADER7.INVOICES,case when (BF_CLM_PAYMENT11.PAY_METHOD = 'AT') then BF_CLM_PAYMENT11.EFT_DATE else BF_CLM_PAYMENT11.CHQ_DATE end ,SY_PV_PAY_TYPE.PV_PAY_TYPE  for CL_BATCH_HEADER7.BATCH_ID,CL_BATCH_HEADER7.RCV_DATE,case when (CL_BATCH_HEADER7.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER7.RCV_DATE else CL_BATCH_HEADER7.UN_HOLD_DATE end ,CL_BATCH_HEADER7.CRT_DATE,CL_BATCH_HEADER7.STM_SENT_DATE1,CL_BATCH_HEADER7.PERIOD,to_date((((substring(CL_BATCH_HEADER7.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER7.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD'),trim(PV_PROVIDER8.PROV_CODE),case 
+  when CL_BATCH_HEADER7.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER7.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER7.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end,case when (CL_BATCH_HEADER7.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end,CL_BATCH_HEADER7.BATCH_TYPE2,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER7.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end,CL_BATCH_HEADER7.BATCH_STATUS_DESC,CL_BATCH_HEADER7.CLM_SUBMISSION_TYPE,case 
+  when PV_PROVIDER8.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER8.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER8.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER8.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK.PV_RANK)
+end,case 
+  when case 
+        when PV_PROVIDER8.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER8.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER8.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER8.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end,CL_BATCH_HEADER7.TPA,case 
+  when CL_BATCH_HEADER7.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER7.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER7.TPA
+end,MR_MEMBER10.MBRSHP_NO,MR_MEMBER10.SEX,case 
+  when (_years_between({sysdate},MR_MEMBER10.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) > 60) then '> 60'
+  else 'Unknown'
+end,case 
+  when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end,((nvl(CL_BATCH_HEADER7.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER7.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER7.BILL_DEDUCT_AMT,0)),CL_BATCH_HEADER7.VAT_AMT,CL_BATCH_HEADER7.INVOICES  order by CL_BATCH_HEADER7.BATCH_ID asc,CL_BATCH_HEADER7.RCV_DATE asc,case when (CL_BATCH_HEADER7.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER7.RCV_DATE else CL_BATCH_HEADER7.UN_HOLD_DATE end  asc,CL_BATCH_HEADER7.CRT_DATE asc,CL_BATCH_HEADER7.STM_SENT_DATE1 asc,CL_BATCH_HEADER7.PERIOD asc,to_date((((substring(CL_BATCH_HEADER7.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER7.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD') asc,trim(PV_PROVIDER8.PROV_CODE) asc,case 
+  when CL_BATCH_HEADER7.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER7.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER7.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end asc,case when (CL_BATCH_HEADER7.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end asc,CL_BATCH_HEADER7.BATCH_TYPE2 asc,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER7.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end asc,CL_BATCH_HEADER7.BATCH_STATUS_DESC asc,CL_BATCH_HEADER7.CLM_SUBMISSION_TYPE asc,case 
+  when PV_PROVIDER8.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER8.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER8.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER8.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK.PV_RANK)
+end asc,case 
+  when case 
+        when PV_PROVIDER8.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER8.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER8.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER8.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end asc,CL_BATCH_HEADER7.TPA asc,case 
+  when CL_BATCH_HEADER7.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER7.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER7.TPA
+end asc,MR_MEMBER10.MBRSHP_NO asc,MR_MEMBER10.SEX asc,case 
+  when (_years_between({sysdate},MR_MEMBER10.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER10.DOB) > 60) then '> 60'
+  else 'Unknown'
+end asc,case 
+  when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end asc,((nvl(CL_BATCH_HEADER7.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER7.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER7.BILL_DEDUCT_AMT,0)) asc,CL_BATCH_HEADER7.VAT_AMT asc,CL_BATCH_HEADER7.INVOICES asc,case when (BF_CLM_PAYMENT11.PAY_METHOD = 'AT') then BF_CLM_PAYMENT11.EFT_DATE else BF_CLM_PAYMENT11.CHQ_DATE end  asc,SY_PV_PAY_TYPE.PV_PAY_TYPE asc  local)  as  sc
+     from 
+           BUPAProd..CSR.CT_CONTACT CT_CONTACT
+            left outer join 
+           MR_MEMBER10
+            on ((CT_CONTACT.CONT_NO = MR_MEMBER10.CONT_NO) and (CT_CONTACT.MBR_NO = MR_MEMBER10.MBR_NO))
+            left outer join 
+           (
+               CL_BATCH_HEADER7
+                join 
+               PV_PROVIDER8
+                on (CL_BATCH_HEADER7.PROV_CODE = PV_PROVIDER8.PROV_CODE)
+           )
+            on (CT_CONTACT.PROV_CODE = PV_PROVIDER8.PROV_CODE)
+            left outer join 
+           BF_CLM_PAYMENT11
+            on (CL_BATCH_HEADER7.BATCH_ID = BF_CLM_PAYMENT11.BATCH_ID)
+            left outer join 
+           SY_PV_PAY_TYPE
+            on (BF_CLM_PAYMENT11.PAY_TYPE = SY_PV_PAY_TYPE.SYS_CODE)
+            full outer join 
+           BF_CLM_PAYMENT1
+            on (BF_CLM_PAYMENT1.PAY_TYPE = SY_PV_PAY_TYPE.SYS_CODE)
+            left outer join 
+           SY_PROVIDER_RANK
+            on (PV_PROVIDER8.PV_RANK = SY_PROVIDER_RANK.SYS_CODE)
+     where 
+           (((CL_BATCH_HEADER7.RCV_DATE >= DATE '2023-01-01') or (CL_BATCH_HEADER7.PERIOD >= 202301)) or ((CL_BATCH_HEADER7.RCV_DATE is NULL) and (CL_BATCH_HEADER7.PERIOD >= 202301))) and 
+           (trim(PV_PROVIDER8.PROV_CODE) in ('20088')) and 
+           (BF_CLM_PAYMENT1.DELETED_IND = 'N')
+     group by 
+           CL_BATCH_HEADER7.BATCH_ID,
+           CL_BATCH_HEADER7.RCV_DATE,
+           case when (CL_BATCH_HEADER7.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER7.RCV_DATE else CL_BATCH_HEADER7.UN_HOLD_DATE end ,
+           CL_BATCH_HEADER7.CRT_DATE,
+           CL_BATCH_HEADER7.STM_SENT_DATE1,
+           CL_BATCH_HEADER7.PERIOD,
+           to_date((((substring(CL_BATCH_HEADER7.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER7.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD'),
+           trim(PV_PROVIDER8.PROV_CODE),
+           case 
+             when CL_BATCH_HEADER7.SERV_TYPE = 'OP' then 'OP Package'
+             when CL_BATCH_HEADER7.CLAIM_TYPE = 'I' then 'In Patient'
+             when CL_BATCH_HEADER7.CLAIM_TYPE = 'O' then 'Out Patient'
+             else 'Both'
+           end,
+           case when (CL_BATCH_HEADER7.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+             else 'NON-INTEGRATION'
+           end,
+           CL_BATCH_HEADER7.BATCH_TYPE2,
+           case 
+             when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+             when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER7.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER7.TPA = 'TPA')) then 'Aramco'
+             else 'Other'
+           end,
+           CL_BATCH_HEADER7.BATCH_STATUS_DESC,
+           CL_BATCH_HEADER7.CLM_SUBMISSION_TYPE,
+           case 
+             when PV_PROVIDER8.PV_RANK = 'T20' then 'a. Top 20'
+             when PV_PROVIDER8.PV_RANK = 'T50' then 'b. Top 50'
+             when PV_PROVIDER8.PV_RANK = 'T100' then 'c. Top 100'
+             when PV_PROVIDER8.PV_RANK = 'A100' then 'd. Above 100'
+             else ('e. ' || SY_PROVIDER_RANK.PV_RANK)
+           end,
+           case 
+             when case 
+                   when PV_PROVIDER8.PV_RANK = 'T20' then 'a. Top 20'
+                   when PV_PROVIDER8.PV_RANK = 'T50' then 'b. Top 50'
+                   when PV_PROVIDER8.PV_RANK = 'T100' then 'c. Top 100'
+                   when PV_PROVIDER8.PV_RANK = 'A100' then 'd. Above 100'
+                   else ('e. ' || SY_PROVIDER_RANK.PV_RANK)
+                 end = 'e. Governmental' then 'Government'
+             else 'Non-Government'
+           end,
+           CL_BATCH_HEADER7.TPA,
+           case 
+             when CL_BATCH_HEADER7.TPA = 'N' then 'NON TPA'
+             when CL_BATCH_HEADER7.TPA = 'Y' then 'TPA'
+             else CL_BATCH_HEADER7.TPA
+           end,
+           MR_MEMBER10.MBRSHP_NO,
+           MR_MEMBER10.SEX,
+           case 
+             when (_years_between({sysdate},MR_MEMBER10.DOB) <= 10) then '0 to 10'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) between 11 and 20) then '11 to 20'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) between 21 and 30) then '21 to 30'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) between 31 and 40) then '31 to 40'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) between 41 and 50) then '41 to 50'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) between 51 and 60) then '51 to 60'
+             when (_years_between({sysdate},MR_MEMBER10.DOB) > 60) then '> 60'
+             else 'Unknown'
+           end,
+           case 
+             when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+             when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+             when (upper(coalesce(CL_BATCH_HEADER7.NOTES,'')) like '%NON-PP%') then 'Non PP'
+             else null
+           end,
+           ((nvl(CL_BATCH_HEADER7.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER7.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER7.BILL_DEDUCT_AMT,0)),
+           CL_BATCH_HEADER7.VAT_AMT,
+           CL_BATCH_HEADER7.INVOICES,
+           case when (BF_CLM_PAYMENT11.PAY_METHOD = 'AT') then BF_CLM_PAYMENT11.EFT_DATE else BF_CLM_PAYMENT11.CHQ_DATE end ,
+           SY_PV_PAY_TYPE.PV_PAY_TYPE
+     order by 
+           Batch_ID asc,
+           Batch_Received_Date asc,
+           c3 asc,
+           Create_Date asc,
+           C_1_Sent_to_Provider_Date asc,
+           Batch_Period asc,
+           Date_of_Batch__Custom_ asc,
+           Provider_Code asc,
+           Batch_Type asc,
+           PP_Batch_Type__Custom_ asc,
+           Batch_Type_2 asc,
+           Customer_Flag__Custom_ asc,
+           Batch_Status asc,
+           Claim_Submission_Type asc,
+           Provider_Rank asc,
+           Provider_Rank__Custom_ asc,
+           TPA_Batch asc,
+           TPA_Batch__Custom_ asc,
+           Bupa_ID asc,
+           Member_Gender asc,
+           Age_Group__Custom_ asc,
+           Delay_Reason__Custom_ asc,
+           PROV_Netbilled asc,
+           VAT_AMT asc,
+           CCU_Invoice_Count asc,
+           Payment_Date asc,
+           Payment_Type asc
+    ),
+MR_MEMBER18 as 
+    (select 
+           MR_MEMBER.CONT_NO,
+           MR_MEMBER.MBR_NO,
+           MR_MEMBER.MBRSHP_NO,
+           MR_MEMBER.SEX,
+           MR_MEMBER.DOB
+     from 
+            ( 
+                   ( 
+                          ( 
+                                 ( 
+                                        ( 
+                                              BUPAProd..CSR.MR_MEMBER MR_MEMBER
+                                        left outer  join 
+                                              BUPAProd..CSR.SY_SYS_CODE SY_SYS_CODE
+                                        on MR_MEMBER.MARITAL_STATUS = RTRIM ( SY_SYS_CODE.SYS_CODE )  and SY_SYS_CODE.SYS_TYPE = 'MARITAL_STATUS      ' ) 
+                                 left outer  join 
+                                       BUPAProd..CSR.MR_PROFESSION PROF
+                                 on MR_MEMBER.CCHI_JOB_CODE = PROF.PROF_CODE ) 
+                          left outer  join 
+                                BUPAProd..CSR.SY_SYS_CODE DR
+                          on MR_MEMBER.DEL_REASON = RTRIM ( DR.SYS_CODE )  and DR.SYS_TYPE = 'WEB_SUB_REASON      ' ) 
+                   left outer  join 
+                         BUPAProd..CSR.CT_PCC_MANAGER pcc
+                   on MR_MEMBER.PCC_MGR = pcc.EMP_ID ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_COUNTRY_CODE SY_COUNTRY_CODE
+            on MR_MEMBER.CTRY_CODE = SY_COUNTRY_CODE.SYS_CODE ) 
+     where MR_MEMBER.CONT_NO <> '49738600'),
+CL_BATCH_HEADER14 as 
+    (select 
+           CL_BATCH_HEADER.BATCH_ID,
+           CL_BATCH_HEADER.PROV_CODE,
+           CL_BATCH_HEADER.RCV_DATE,
+           CL_BATCH_HEADER.PERIOD,
+           CL_BATCH_HEADER.CLAIM_TYPE,
+           CL_BATCH_HEADER.SERV_TYPE,
+           CL_BATCH_HEADER.INVOICES,
+           CL_BATCH_HEADER.STM_SENT_DATE1,
+           CL_BATCH_HEADER.BILL_PRESENT_AMT,
+           CL_BATCH_HEADER.BILL_DISC_AMT,
+           CL_BATCH_HEADER.BILL_DEDUCT_AMT,
+           CL_BATCH_HEADER.CRT_DATE,
+           CL_BATCH_HEADER.NOTES,
+           CL_BATCH_HEADER.UN_HOLD_DATE,
+           CL_BATCH_HEADER.VAT_AMT,
+           SY_STATUS_BATCH_HEADER.EDESC as BATCH_STATUS_DESC,
+           CL_BATCH_HEADER.BATCH_TYPE_DESC as BATCH_TYPE2,
+           SYS_SUBMIS_TYPE.EDESC as CLM_SUBMISSION_TYPE,
+           CL_BATCH_HEADER.TPA
+     from 
+            ( 
+                   ( 
+                         BUPAProd..CSR.CL_BATCH_HEADER CL_BATCH_HEADER
+                   inner  join 
+                         BUPAProd..CSR.SY_STATUS_BATCH_HEADER SY_STATUS_BATCH_HEADER
+                   on CL_BATCH_HEADER.STATUS = SY_STATUS_BATCH_HEADER.SYS_CODE ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_SYS_CODE SYS_SUBMIS_TYPE
+            on CL_BATCH_HEADER.CLM_SUBMIS_TYPE = SYS_SUBMIS_TYPE.SYS_CODE and SYS_TYPE = 'CLM_SUBMISSION_TYPE' ) ),
+CL_CLM_HIST_LINE_P as 
+    (select 
+           CL_CLM_HIST_LINE.VOU_NO,
+           CL_CLM_HIST_LINE.LINE_NO,
+           CL_CLM_HIST_LINE.CONT_NO,
+           CL_CLM_HIST_LINE.MBR_NO,
+           CL_CLM_HIST_LINE.CONT_YYMM,
+           CL_CLM_HIST_LINE.BATCH_ID,
+           CL_CLM_HIST_LINE.BEN_HEAD,
+           CL_CLM_HIST_LINE.DIAG_CODE,
+           CL_CLM_HIST_LINE.CLS_ID
+     from 
+            ( 
+                   ( 
+                          ( 
+                                BUPAProd..CSR.CL_CLM_HIST_LINE CL_CLM_HIST_LINE
+                          inner  join 
+                                BUPAProd..CSR.CL_BATCH_HEADER CL_BATCH_HEADER
+                          on CL_BATCH_HEADER.BATCH_ID = CL_CLM_HIST_LINE.BATCH_ID ) 
+                   left outer  join 
+                         BUPAProd..CSR.SY_SYS_CODE SY_SYS_CODE
+                   on CL_CLM_HIST_LINE.STATUS = RTRIM ( SY_SYS_CODE.SYS_CODE )  and SY_SYS_CODE.SYS_TYPE = 'STATUS_CLAIM        ' ) 
+            left outer  join 
+                   ( select 
+                         VOU_NO, 
+                         max ( REQ_ID )  as PBM_Request_ID
+                   from 
+                         BUPAProd..CSR.CL_PBM_TXN_MASTER
+                   group by 
+                         VOU_NO )  CL_PBM_TXN_MASTER
+            on CL_PBM_TXN_MASTER.VOU_NO = CL_CLM_HIST_LINE.VOU_NO ) 
+     where  ( CL_CLM_HIST_LINE.STATUS <> 'RV' and CL_BATCH_HEADER.PERIOD >= 200601 )  and CL_CLM_HIST_LINE.CONT_NO <> '49738600'),
+PV_PROVIDER15 as 
+    (select 
+           PV_PROVIDER.PROV_CODE,
+           PV_PROVIDER.PV_RANK
+     from 
+            ( 
+                   ( 
+                          ( 
+                                 ( 
+                                        ( 
+                                               ( 
+                                                      ( 
+                                                            BUPAProd..CSR.PV_PROVIDER PV_PROVIDER
+                                                      inner  join 
+                                                            BUPAProd..CSR.DC_DISTRICT DC_DISTRICT
+                                                      on PV_PROVIDER.CORR_DIST_CODE = DC_DISTRICT.DIST_CODE ) 
+                                               left outer  join 
+                                                     BUPAProd..CSR.SY_PROVIDER_LEVEL SY_PROVIDER_LEVEL1
+                                               on PV_PROVIDER.PROV_LEVEL = SY_PROVIDER_LEVEL1.SYS_CODE ) 
+                                        left outer  join 
+                                              BUPAProd..CSR.SY_PRACTICE_TYPE SY_PRACTICE_TYPE
+                                        on PV_PROVIDER.PRACTICE_TYPE = SY_PRACTICE_TYPE.SYS_CODE ) 
+                                 left outer  join 
+                                       BUPAProd..CSR.PV_PROV_LVL_MVMNT
+                                 on PV_PROVIDER.PROV_CODE = PV_PROV_LVL_MVMNT.PROV_CODE ) 
+                          left outer  join 
+                                BUPAProd..CSR.SY_PROVIDER_LEVEL SY_PROVIDER_LEVEL2
+                          on PV_PROV_LVL_MVMNT.PROV_LEVEL = SY_PROVIDER_LEVEL2.SYS_CODE ) 
+                   left outer  join 
+                         BUPAProd..CSR.SY_SYS_CODE VRS
+                   on trim ( VRS.SYS_CODE )  = PV_PROVIDER.VAT_REG_STATUS and trim ( VRS.SYS_TYPE )  = 'VAT_REG_STATUS' ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_SYS_CODE CTC
+            on trim ( CTC.SYS_CODE )  = PV_PROVIDER.CTRY_CODE and trim ( CTC.SYS_TYPE )  = 'COUNTRY_CODE' ) 
+     where PV_PROV_LVL_MVMNT.END_DATE is null and PV_PROVIDER.PRACTICE_TYPE <> 280),
+CONTRACTS_PLAN as 
+    (select 
+           MR_CONT_CLS.NET_SET_ID,
+           MR_CONT_CLS.CONT_NO,
+           MR_CONT_CLS.CONT_YYMM,
+           MR_CONT_CLS.CLS_ID
+     from 
+            ( 
+                   ( 
+                          ( 
+                                BUPAProd..CSR.MR_CONT_CLS MR_CONT_CLS
+                          inner  join 
+                                BUPAProd..CSR.MR_CONTRACT MR_CONTRACT
+                          on MR_CONT_CLS.CONT_NO = MR_CONTRACT.CONT_NO and MR_CONT_CLS.CONT_YYMM = MR_CONTRACT.CONT_YYMM ) 
+                   inner  join 
+                         BUPAProd..CSR.MR_CUSTOMER_TBL MR_CUSTOMER_TBL
+                   on MR_CONT_CLS.CONT_NO = MR_CUSTOMER_TBL.CONT_NO ) 
+            left outer  join 
+                  BUPAProd..CSR.BT_PLAN BT_PLAN
+            on BT_PLAN.PLAN_ID = MR_CONT_CLS.PLAN_ID ) ),
+MR_CONTRACT17 as 
+    (select 
+           MR_CONTRACT.CONT_NO,
+           MR_CONTRACT.CONT_YYMM,
+           MR_CONTRACT.CONT_TYPE
+     from 
+            ( 
+                   ( 
+                         BUPAProd..CSR.MR_CONTRACT MR_CONTRACT
+                   inner  join 
+                         BUPAProd..CSR.MR_CUSTOMER_TBL MR_CUSTOMER_TBL
+                   on MR_CONTRACT.CONT_NO = MR_CUSTOMER_TBL.CONT_NO ) 
+            inner  join 
+                  BUPAProd..CSR.DC_DISTRICT DC_DISTRICT
+            on MR_CUSTOMER_TBL.CORR_DIST_CODE = DC_DISTRICT.DIST_CODE ) ),
+SY_CLAIM_BENEFIT as 
+    (select 
+           trim ( SY_BENEFIT_HEAD.SYS_CODE )  as BENEFIT_HEAD_ID,
+           trim ( SY_BENEFIT_TYPE.EDESC )  as BENEFIT_TYPE
+     from 
+            ( 
+                  BUPAProd..CSR.SY_BENEFIT_HEAD SY_BENEFIT_HEAD
+            inner  join 
+                  BUPAProd..CSR.SY_BENEFIT_TYPE SY_BENEFIT_TYPE
+            on substr ( SY_BENEFIT_HEAD.SYS_CODE, 1, 1 )  = trim ( SY_BENEFIT_TYPE.SYS_CODE )  ) ),
+SY_PROVIDER_RANK16 as 
+    (select 
+           SYS_CODE,
+           EDESC as PV_RANK
+     from 
+           BUPAProd..CSR.SY_SYS_CODE
+     where SYS_TYPE = 'PV_RANK'),
+D3 as 
+    (select 
+           CL_BATCH_HEADER14.BATCH_ID  as  Batch_ID,
+           CL_BATCH_HEADER14.RCV_DATE  as  Batch_Received_Date,
+           case when (CL_BATCH_HEADER14.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER14.RCV_DATE else CL_BATCH_HEADER14.UN_HOLD_DATE end   as  c3,
+           CL_BATCH_HEADER14.CRT_DATE  as  Create_Date,
+           CL_BATCH_HEADER14.STM_SENT_DATE1  as  C_1_Sent_to_Provider_Date,
+           CL_BATCH_HEADER14.PERIOD  as  Batch_Period,
+           to_date((((substring(CL_BATCH_HEADER14.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER14.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD')  as  Date_of_Batch__Custom_,
+           trim(PV_PROVIDER15.PROV_CODE)  as  Provider_Code,
+           case 
+             when CL_BATCH_HEADER14.SERV_TYPE = 'OP' then 'OP Package'
+             when CL_BATCH_HEADER14.CLAIM_TYPE = 'I' then 'In Patient'
+             when CL_BATCH_HEADER14.CLAIM_TYPE = 'O' then 'Out Patient'
+             else 'Both'
+           end  as  Batch_Type,
+           case when (CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+             else 'NON-INTEGRATION'
+           end  as  PP_Batch_Type__Custom_,
+           CL_BATCH_HEADER14.BATCH_TYPE2  as  Batch_Type_2,
+           case 
+             when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+             when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER14.TPA = 'TPA')) then 'Aramco'
+             else 'Other'
+           end  as  Customer_Flag__Custom_,
+           CL_BATCH_HEADER14.BATCH_STATUS_DESC  as  Batch_Status,
+           CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE  as  Claim_Submission_Type,
+           case 
+             when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+             when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+             when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+             when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+             else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+           end  as  Provider_Rank,
+           case 
+             when case 
+                   when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+                   when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+                   when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+                   when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+                   else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+                 end = 'e. Governmental' then 'Government'
+             else 'Non-Government'
+           end  as  Provider_Rank__Custom_,
+           CL_BATCH_HEADER14.TPA  as  TPA_Batch,
+           case 
+             when CL_BATCH_HEADER14.TPA = 'N' then 'NON TPA'
+             when CL_BATCH_HEADER14.TPA = 'Y' then 'TPA'
+             else CL_BATCH_HEADER14.TPA
+           end  as  TPA_Batch__Custom_,
+           MR_CONTRACT17.CONT_NO  as  Contract_No,
+           MR_CONTRACT17.CONT_TYPE  as  Contract_Type,
+           case 
+             when MR_CONTRACT17.CONT_NO = '32559700' then 'SABIC'
+             when MR_CONTRACT17.CONT_NO = '45140200' then 'TPA'
+             when (MR_CONTRACT17.CONT_TYPE in ('BDRC','IHPS','TASC')) then 'SME'
+             when (MR_CONTRACT17.CONT_TYPE in ('CORC','COSC','IHPC')) then 'Corporate'
+             else 'Other'
+           end  as  Contract_Type__Custom_,
+           PV_NETWORK_SET.NET_TYPE  as  Network_Type,
+           case 
+             when (PV_NETWORK_SET.NET_TYPE in ('NW1','NW2','NW3')) then 'NW 1,2,3'
+             when (PV_NETWORK_SET.NET_TYPE in ('NW4','NW5')) then 'NW 4,5'
+             when PV_NETWORK_SET.NET_TYPE = 'NW6' then 'NW6'
+             when PV_NETWORK_SET.NET_TYPE = 'NW7' then 'NW7'
+             when (PV_NETWORK_SET.NET_TYPE in ('NWM','NWR','NWS')) then 'NW M,S,R'
+             else 'Others'
+           end  as  Network_Group__Custom_,
+           MR_MEMBER18.MBRSHP_NO  as  Bupa_ID,
+           MR_MEMBER18.SEX  as  Member_Gender,
+           case 
+             when (_years_between({sysdate},MR_MEMBER18.DOB) <= 10) then '0 to 10'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) between 11 and 20) then '11 to 20'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) between 21 and 30) then '21 to 30'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) between 31 and 40) then '31 to 40'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) between 41 and 50) then '41 to 50'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) between 51 and 60) then '51 to 60'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) > 60) then '> 60'
+             else 'Unknown'
+           end  as  Age_Group__Custom_,
+           CL_CLM_HIST_LINE_P.DIAG_CODE  as  ICD10,
+           case 
+             when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'SA' then 'S'
+             when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'TA' then 'T'
+             else substr(upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)),1,(instr((upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) || '.'),'.') - 1))
+           end  as  ICD___Custom_,
+           CL_CLM_HIST_LINE_P.VOU_NO  as  Voucher_No,
+           SY_CLAIM_BENEFIT.BENEFIT_TYPE  as  Benefit_Type,
+           case 
+             when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+             when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+             when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%NON-PP%') then 'Non PP'
+             else null
+           end  as  Delay_Reason__Custom_,
+           CL_CALC.PRESENTED_NET_BILLED2  as  PRESENTED_NET_BILLED2,
+           ((nvl(CL_BATCH_HEADER14.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER14.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER14.BILL_DEDUCT_AMT,0))  as  PROV_Netbilled,
+           CL_BATCH_HEADER14.VAT_AMT  as  VAT_AMT,
+           CL_BATCH_HEADER14.INVOICES  as  CCU_Invoice_Count,
+           (((nvl(CL_BATCH_HEADER14.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER14.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER14.BILL_DEDUCT_AMT,0)) + CL_BATCH_HEADER14.VAT_AMT)  as  rc,
+           RSUM(1  at CL_BATCH_HEADER14.BATCH_ID,CL_BATCH_HEADER14.RCV_DATE,case when (CL_BATCH_HEADER14.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER14.RCV_DATE else CL_BATCH_HEADER14.UN_HOLD_DATE end ,CL_BATCH_HEADER14.CRT_DATE,CL_BATCH_HEADER14.STM_SENT_DATE1,CL_BATCH_HEADER14.PERIOD,to_date((((substring(CL_BATCH_HEADER14.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER14.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD'),trim(PV_PROVIDER15.PROV_CODE),case 
+  when CL_BATCH_HEADER14.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER14.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER14.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end,case when (CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end,CL_BATCH_HEADER14.BATCH_TYPE2,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER14.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end,CL_BATCH_HEADER14.BATCH_STATUS_DESC,CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE,case 
+  when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+end,case 
+  when case 
+        when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end,CL_BATCH_HEADER14.TPA,case 
+  when CL_BATCH_HEADER14.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER14.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER14.TPA
+end,MR_MEMBER18.MBRSHP_NO,MR_MEMBER18.SEX,case 
+  when (_years_between({sysdate},MR_MEMBER18.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) > 60) then '> 60'
+  else 'Unknown'
+end,case 
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end,((nvl(CL_BATCH_HEADER14.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER14.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER14.BILL_DEDUCT_AMT,0)),CL_BATCH_HEADER14.VAT_AMT,CL_BATCH_HEADER14.INVOICES,MR_CONTRACT17.CONT_NO,MR_CONTRACT17.CONT_TYPE,case 
+  when MR_CONTRACT17.CONT_NO = '32559700' then 'SABIC'
+  when MR_CONTRACT17.CONT_NO = '45140200' then 'TPA'
+  when (MR_CONTRACT17.CONT_TYPE in ('BDRC','IHPS','TASC')) then 'SME'
+  when (MR_CONTRACT17.CONT_TYPE in ('CORC','COSC','IHPC')) then 'Corporate'
+  else 'Other'
+end,PV_NETWORK_SET.NET_TYPE,case 
+  when (PV_NETWORK_SET.NET_TYPE in ('NW1','NW2','NW3')) then 'NW 1,2,3'
+  when (PV_NETWORK_SET.NET_TYPE in ('NW4','NW5')) then 'NW 4,5'
+  when PV_NETWORK_SET.NET_TYPE = 'NW6' then 'NW6'
+  when PV_NETWORK_SET.NET_TYPE = 'NW7' then 'NW7'
+  when (PV_NETWORK_SET.NET_TYPE in ('NWM','NWR','NWS')) then 'NW M,S,R'
+  else 'Others'
+end,CL_CLM_HIST_LINE_P.DIAG_CODE,case 
+  when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'SA' then 'S'
+  when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'TA' then 'T'
+  else substr(upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)),1,(instr((upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) || '.'),'.') - 1))
+end,CL_CLM_HIST_LINE_P.VOU_NO,SY_CLAIM_BENEFIT.BENEFIT_TYPE,CL_CALC.PRESENTED_NET_BILLED2  for CL_BATCH_HEADER14.BATCH_ID,CL_BATCH_HEADER14.RCV_DATE,case when (CL_BATCH_HEADER14.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER14.RCV_DATE else CL_BATCH_HEADER14.UN_HOLD_DATE end ,CL_BATCH_HEADER14.CRT_DATE,CL_BATCH_HEADER14.STM_SENT_DATE1,CL_BATCH_HEADER14.PERIOD,to_date((((substring(CL_BATCH_HEADER14.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER14.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD'),trim(PV_PROVIDER15.PROV_CODE),case 
+  when CL_BATCH_HEADER14.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER14.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER14.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end,case when (CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end,CL_BATCH_HEADER14.BATCH_TYPE2,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER14.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end,CL_BATCH_HEADER14.BATCH_STATUS_DESC,CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE,case 
+  when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+end,case 
+  when case 
+        when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end,CL_BATCH_HEADER14.TPA,case 
+  when CL_BATCH_HEADER14.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER14.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER14.TPA
+end,MR_MEMBER18.MBRSHP_NO,MR_MEMBER18.SEX,case 
+  when (_years_between({sysdate},MR_MEMBER18.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) > 60) then '> 60'
+  else 'Unknown'
+end,case 
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end,((nvl(CL_BATCH_HEADER14.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER14.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER14.BILL_DEDUCT_AMT,0)),CL_BATCH_HEADER14.VAT_AMT,CL_BATCH_HEADER14.INVOICES  order by CL_BATCH_HEADER14.BATCH_ID asc,CL_BATCH_HEADER14.RCV_DATE asc,case when (CL_BATCH_HEADER14.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER14.RCV_DATE else CL_BATCH_HEADER14.UN_HOLD_DATE end  asc,CL_BATCH_HEADER14.CRT_DATE asc,CL_BATCH_HEADER14.STM_SENT_DATE1 asc,CL_BATCH_HEADER14.PERIOD asc,to_date((((substring(CL_BATCH_HEADER14.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER14.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD') asc,trim(PV_PROVIDER15.PROV_CODE) asc,case 
+  when CL_BATCH_HEADER14.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER14.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER14.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end asc,case when (CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end asc,CL_BATCH_HEADER14.BATCH_TYPE2 asc,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER14.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end asc,CL_BATCH_HEADER14.BATCH_STATUS_DESC asc,CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE asc,case 
+  when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+end asc,case 
+  when case 
+        when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end asc,CL_BATCH_HEADER14.TPA asc,case 
+  when CL_BATCH_HEADER14.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER14.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER14.TPA
+end asc,MR_MEMBER18.MBRSHP_NO asc,MR_MEMBER18.SEX asc,case 
+  when (_years_between({sysdate},MR_MEMBER18.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) > 60) then '> 60'
+  else 'Unknown'
+end asc,case 
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end asc,((nvl(CL_BATCH_HEADER14.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER14.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER14.BILL_DEDUCT_AMT,0)) asc,CL_BATCH_HEADER14.VAT_AMT asc,CL_BATCH_HEADER14.INVOICES asc,MR_CONTRACT17.CONT_NO asc,MR_CONTRACT17.CONT_TYPE asc,case 
+  when MR_CONTRACT17.CONT_NO = '32559700' then 'SABIC'
+  when MR_CONTRACT17.CONT_NO = '45140200' then 'TPA'
+  when (MR_CONTRACT17.CONT_TYPE in ('BDRC','IHPS','TASC')) then 'SME'
+  when (MR_CONTRACT17.CONT_TYPE in ('CORC','COSC','IHPC')) then 'Corporate'
+  else 'Other'
+end asc,PV_NETWORK_SET.NET_TYPE asc,case 
+  when (PV_NETWORK_SET.NET_TYPE in ('NW1','NW2','NW3')) then 'NW 1,2,3'
+  when (PV_NETWORK_SET.NET_TYPE in ('NW4','NW5')) then 'NW 4,5'
+  when PV_NETWORK_SET.NET_TYPE = 'NW6' then 'NW6'
+  when PV_NETWORK_SET.NET_TYPE = 'NW7' then 'NW7'
+  when (PV_NETWORK_SET.NET_TYPE in ('NWM','NWR','NWS')) then 'NW M,S,R'
+  else 'Others'
+end asc,CL_CLM_HIST_LINE_P.DIAG_CODE asc,case 
+  when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'SA' then 'S'
+  when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'TA' then 'T'
+  else substr(upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)),1,(instr((upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) || '.'),'.') - 1))
+end asc,CL_CLM_HIST_LINE_P.VOU_NO asc,SY_CLAIM_BENEFIT.BENEFIT_TYPE asc,CL_CALC.PRESENTED_NET_BILLED2 asc  local)  as  sc,
+           RSUM(1  at trim(PV_PROVIDER15.PROV_CODE),case 
+  when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+end,case 
+  when case 
+        when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end,MR_MEMBER18.MBRSHP_NO,MR_MEMBER18.SEX,case 
+  when (_years_between({sysdate},MR_MEMBER18.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) > 60) then '> 60'
+  else 'Unknown'
+end,CL_BATCH_HEADER14.BATCH_ID,CL_BATCH_HEADER14.RCV_DATE,case when (CL_BATCH_HEADER14.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER14.RCV_DATE else CL_BATCH_HEADER14.UN_HOLD_DATE end ,CL_BATCH_HEADER14.CRT_DATE,CL_BATCH_HEADER14.STM_SENT_DATE1,CL_BATCH_HEADER14.PERIOD,to_date((((substring(CL_BATCH_HEADER14.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER14.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD'),case 
+  when CL_BATCH_HEADER14.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER14.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER14.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end,case when (CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end,CL_BATCH_HEADER14.BATCH_TYPE2,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER14.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end,CL_BATCH_HEADER14.BATCH_STATUS_DESC,CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE,CL_BATCH_HEADER14.TPA,case 
+  when CL_BATCH_HEADER14.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER14.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER14.TPA
+end,MR_CONTRACT17.CONT_NO,MR_CONTRACT17.CONT_TYPE,case 
+  when MR_CONTRACT17.CONT_NO = '32559700' then 'SABIC'
+  when MR_CONTRACT17.CONT_NO = '45140200' then 'TPA'
+  when (MR_CONTRACT17.CONT_TYPE in ('BDRC','IHPS','TASC')) then 'SME'
+  when (MR_CONTRACT17.CONT_TYPE in ('CORC','COSC','IHPC')) then 'Corporate'
+  else 'Other'
+end,PV_NETWORK_SET.NET_TYPE,case 
+  when (PV_NETWORK_SET.NET_TYPE in ('NW1','NW2','NW3')) then 'NW 1,2,3'
+  when (PV_NETWORK_SET.NET_TYPE in ('NW4','NW5')) then 'NW 4,5'
+  when PV_NETWORK_SET.NET_TYPE = 'NW6' then 'NW6'
+  when PV_NETWORK_SET.NET_TYPE = 'NW7' then 'NW7'
+  when (PV_NETWORK_SET.NET_TYPE in ('NWM','NWR','NWS')) then 'NW M,S,R'
+  else 'Others'
+end,CL_CLM_HIST_LINE_P.DIAG_CODE,case 
+  when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'SA' then 'S'
+  when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'TA' then 'T'
+  else substr(upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)),1,(instr((upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) || '.'),'.') - 1))
+end,CL_CLM_HIST_LINE_P.VOU_NO,SY_CLAIM_BENEFIT.BENEFIT_TYPE,case 
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end,CL_CALC.PRESENTED_NET_BILLED2,((nvl(CL_BATCH_HEADER14.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER14.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER14.BILL_DEDUCT_AMT,0)),CL_BATCH_HEADER14.VAT_AMT,CL_BATCH_HEADER14.INVOICES  for trim(PV_PROVIDER15.PROV_CODE),case 
+  when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+end,case 
+  when case 
+        when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end,MR_MEMBER18.MBRSHP_NO,MR_MEMBER18.SEX,case 
+  when (_years_between({sysdate},MR_MEMBER18.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) > 60) then '> 60'
+  else 'Unknown'
+end  order by CL_BATCH_HEADER14.BATCH_ID asc,CL_BATCH_HEADER14.RCV_DATE asc,case when (CL_BATCH_HEADER14.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER14.RCV_DATE else CL_BATCH_HEADER14.UN_HOLD_DATE end  asc,CL_BATCH_HEADER14.CRT_DATE asc,CL_BATCH_HEADER14.STM_SENT_DATE1 asc,CL_BATCH_HEADER14.PERIOD asc,to_date((((substring(CL_BATCH_HEADER14.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER14.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD') asc,trim(PV_PROVIDER15.PROV_CODE) asc,case 
+  when CL_BATCH_HEADER14.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER14.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER14.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end asc,case when (CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end asc,CL_BATCH_HEADER14.BATCH_TYPE2 asc,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER14.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end asc,CL_BATCH_HEADER14.BATCH_STATUS_DESC asc,CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE asc,case 
+  when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+end asc,case 
+  when case 
+        when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end asc,CL_BATCH_HEADER14.TPA asc,case 
+  when CL_BATCH_HEADER14.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER14.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER14.TPA
+end asc,MR_MEMBER18.MBRSHP_NO asc,MR_MEMBER18.SEX asc,case 
+  when (_years_between({sysdate},MR_MEMBER18.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER18.DOB) > 60) then '> 60'
+  else 'Unknown'
+end asc,case 
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end asc,((nvl(CL_BATCH_HEADER14.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER14.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER14.BILL_DEDUCT_AMT,0)) asc,CL_BATCH_HEADER14.VAT_AMT asc,CL_BATCH_HEADER14.INVOICES asc,MR_CONTRACT17.CONT_NO asc,MR_CONTRACT17.CONT_TYPE asc,case 
+  when MR_CONTRACT17.CONT_NO = '32559700' then 'SABIC'
+  when MR_CONTRACT17.CONT_NO = '45140200' then 'TPA'
+  when (MR_CONTRACT17.CONT_TYPE in ('BDRC','IHPS','TASC')) then 'SME'
+  when (MR_CONTRACT17.CONT_TYPE in ('CORC','COSC','IHPC')) then 'Corporate'
+  else 'Other'
+end asc,PV_NETWORK_SET.NET_TYPE asc,case 
+  when (PV_NETWORK_SET.NET_TYPE in ('NW1','NW2','NW3')) then 'NW 1,2,3'
+  when (PV_NETWORK_SET.NET_TYPE in ('NW4','NW5')) then 'NW 4,5'
+  when PV_NETWORK_SET.NET_TYPE = 'NW6' then 'NW6'
+  when PV_NETWORK_SET.NET_TYPE = 'NW7' then 'NW7'
+  when (PV_NETWORK_SET.NET_TYPE in ('NWM','NWR','NWS')) then 'NW M,S,R'
+  else 'Others'
+end asc,CL_CLM_HIST_LINE_P.DIAG_CODE asc,case 
+  when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'SA' then 'S'
+  when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'TA' then 'T'
+  else substr(upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)),1,(instr((upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) || '.'),'.') - 1))
+end asc,CL_CLM_HIST_LINE_P.VOU_NO asc,SY_CLAIM_BENEFIT.BENEFIT_TYPE asc,CL_CALC.PRESENTED_NET_BILLED2 asc  local)  as  sc38
+     from 
+           BUPAProd..CSR.CT_CONTACT CT_CONTACT
+            left outer join 
+           MR_MEMBER18
+            on ((CT_CONTACT.CONT_NO = MR_MEMBER18.CONT_NO) and (CT_CONTACT.MBR_NO = MR_MEMBER18.MBR_NO))
+            full outer join 
+           (
+               CL_BATCH_HEADER14
+                join 
+               CL_CLM_HIST_LINE_P
+                on (CL_BATCH_HEADER14.BATCH_ID = CL_CLM_HIST_LINE_P.BATCH_ID)
+                join 
+               PV_PROVIDER15
+                on (CL_BATCH_HEADER14.PROV_CODE = PV_PROVIDER15.PROV_CODE)
+           )
+            on ((CL_CLM_HIST_LINE_P.MBR_NO = MR_MEMBER18.MBR_NO) and (CL_CLM_HIST_LINE_P.CONT_NO = MR_MEMBER18.CONT_NO))
+            left outer join 
+           BUPAProd..CSR.CL_CALC CL_CALC
+            on ((CL_CLM_HIST_LINE_P.VOU_NO = CL_CALC.VOU_NO) and (CL_CLM_HIST_LINE_P.LINE_NO = CL_CALC.LINE_NO))
+            left outer join 
+           (
+               BUPAProd..CSR.PV_NETWORK_SET PV_NETWORK_SET
+                join 
+               CONTRACTS_PLAN
+                on (PV_NETWORK_SET.NET_SET_ID = CONTRACTS_PLAN.NET_SET_ID)
+           )
+            on (((CL_CLM_HIST_LINE_P.CONT_NO = CONTRACTS_PLAN.CONT_NO) and (CL_CLM_HIST_LINE_P.CONT_YYMM = CONTRACTS_PLAN.CONT_YYMM)) and (CL_CLM_HIST_LINE_P.CLS_ID = CONTRACTS_PLAN.CLS_ID))
+            left outer join 
+           MR_CONTRACT17
+            on ((CL_CLM_HIST_LINE_P.CONT_NO = MR_CONTRACT17.CONT_NO) and (CL_CLM_HIST_LINE_P.CONT_YYMM = MR_CONTRACT17.CONT_YYMM))
+            left outer join 
+           SY_CLAIM_BENEFIT
+            on (CL_CLM_HIST_LINE_P.BEN_HEAD = SY_CLAIM_BENEFIT.BENEFIT_HEAD_ID)
+            left outer join 
+           SY_PROVIDER_RANK16
+            on (PV_PROVIDER15.PV_RANK = SY_PROVIDER_RANK16.SYS_CODE)
+     where 
+           (((CL_BATCH_HEADER14.RCV_DATE >= DATE '2023-01-01') or (CL_BATCH_HEADER14.PERIOD >= 202301)) or ((CL_BATCH_HEADER14.RCV_DATE is NULL) and (CL_BATCH_HEADER14.PERIOD >= 202301))) and 
+           (trim(PV_PROVIDER15.PROV_CODE) in ('20088'))
+     group by 
+           CL_BATCH_HEADER14.BATCH_ID,
+           CL_BATCH_HEADER14.RCV_DATE,
+           case when (CL_BATCH_HEADER14.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER14.RCV_DATE else CL_BATCH_HEADER14.UN_HOLD_DATE end ,
+           CL_BATCH_HEADER14.CRT_DATE,
+           CL_BATCH_HEADER14.STM_SENT_DATE1,
+           CL_BATCH_HEADER14.PERIOD,
+           to_date((((substring(CL_BATCH_HEADER14.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER14.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD'),
+           trim(PV_PROVIDER15.PROV_CODE),
+           case 
+             when CL_BATCH_HEADER14.SERV_TYPE = 'OP' then 'OP Package'
+             when CL_BATCH_HEADER14.CLAIM_TYPE = 'I' then 'In Patient'
+             when CL_BATCH_HEADER14.CLAIM_TYPE = 'O' then 'Out Patient'
+             else 'Both'
+           end,
+           case when (CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+             else 'NON-INTEGRATION'
+           end,
+           CL_BATCH_HEADER14.BATCH_TYPE2,
+           case 
+             when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+             when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER14.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER14.TPA = 'TPA')) then 'Aramco'
+             else 'Other'
+           end,
+           CL_BATCH_HEADER14.BATCH_STATUS_DESC,
+           CL_BATCH_HEADER14.CLM_SUBMISSION_TYPE,
+           case 
+             when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+             when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+             when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+             when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+             else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+           end,
+           case 
+             when case 
+                   when PV_PROVIDER15.PV_RANK = 'T20' then 'a. Top 20'
+                   when PV_PROVIDER15.PV_RANK = 'T50' then 'b. Top 50'
+                   when PV_PROVIDER15.PV_RANK = 'T100' then 'c. Top 100'
+                   when PV_PROVIDER15.PV_RANK = 'A100' then 'd. Above 100'
+                   else ('e. ' || SY_PROVIDER_RANK16.PV_RANK)
+                 end = 'e. Governmental' then 'Government'
+             else 'Non-Government'
+           end,
+           CL_BATCH_HEADER14.TPA,
+           case 
+             when CL_BATCH_HEADER14.TPA = 'N' then 'NON TPA'
+             when CL_BATCH_HEADER14.TPA = 'Y' then 'TPA'
+             else CL_BATCH_HEADER14.TPA
+           end,
+           MR_CONTRACT17.CONT_NO,
+           MR_CONTRACT17.CONT_TYPE,
+           case 
+             when MR_CONTRACT17.CONT_NO = '32559700' then 'SABIC'
+             when MR_CONTRACT17.CONT_NO = '45140200' then 'TPA'
+             when (MR_CONTRACT17.CONT_TYPE in ('BDRC','IHPS','TASC')) then 'SME'
+             when (MR_CONTRACT17.CONT_TYPE in ('CORC','COSC','IHPC')) then 'Corporate'
+             else 'Other'
+           end,
+           PV_NETWORK_SET.NET_TYPE,
+           case 
+             when (PV_NETWORK_SET.NET_TYPE in ('NW1','NW2','NW3')) then 'NW 1,2,3'
+             when (PV_NETWORK_SET.NET_TYPE in ('NW4','NW5')) then 'NW 4,5'
+             when PV_NETWORK_SET.NET_TYPE = 'NW6' then 'NW6'
+             when PV_NETWORK_SET.NET_TYPE = 'NW7' then 'NW7'
+             when (PV_NETWORK_SET.NET_TYPE in ('NWM','NWR','NWS')) then 'NW M,S,R'
+             else 'Others'
+           end,
+           MR_MEMBER18.MBRSHP_NO,
+           MR_MEMBER18.SEX,
+           case 
+             when (_years_between({sysdate},MR_MEMBER18.DOB) <= 10) then '0 to 10'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) between 11 and 20) then '11 to 20'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) between 21 and 30) then '21 to 30'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) between 31 and 40) then '31 to 40'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) between 41 and 50) then '41 to 50'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) between 51 and 60) then '51 to 60'
+             when (_years_between({sysdate},MR_MEMBER18.DOB) > 60) then '> 60'
+             else 'Unknown'
+           end,
+           CL_CLM_HIST_LINE_P.DIAG_CODE,
+           case 
+             when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'SA' then 'S'
+             when upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) = 'TA' then 'T'
+             else substr(upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)),1,(instr((upper(trim(CL_CLM_HIST_LINE_P.DIAG_CODE)) || '.'),'.') - 1))
+           end,
+           CL_CLM_HIST_LINE_P.VOU_NO,
+           SY_CLAIM_BENEFIT.BENEFIT_TYPE,
+           case 
+             when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+             when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+             when (upper(coalesce(CL_BATCH_HEADER14.NOTES,'')) like '%NON-PP%') then 'Non PP'
+             else null
+           end,
+           CL_CALC.PRESENTED_NET_BILLED2,
+           ((nvl(CL_BATCH_HEADER14.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER14.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER14.BILL_DEDUCT_AMT,0)),
+           CL_BATCH_HEADER14.VAT_AMT,
+           CL_BATCH_HEADER14.INVOICES
+     order by 
+           Batch_ID asc,
+           Batch_Received_Date asc,
+           c3 asc,
+           Create_Date asc,
+           C_1_Sent_to_Provider_Date asc,
+           Batch_Period asc,
+           Date_of_Batch__Custom_ asc,
+           Provider_Code asc,
+           Batch_Type asc,
+           PP_Batch_Type__Custom_ asc,
+           Batch_Type_2 asc,
+           Customer_Flag__Custom_ asc,
+           Batch_Status asc,
+           Claim_Submission_Type asc,
+           Provider_Rank asc,
+           Provider_Rank__Custom_ asc,
+           TPA_Batch asc,
+           TPA_Batch__Custom_ asc,
+           Bupa_ID asc,
+           Member_Gender asc,
+           Age_Group__Custom_ asc,
+           Delay_Reason__Custom_ asc,
+           PROV_Netbilled asc,
+           VAT_AMT asc,
+           CCU_Invoice_Count asc,
+           Contract_No asc,
+           Contract_Type asc,
+           Contract_Type__Custom_ asc,
+           Network_Type asc,
+           Network_Group__Custom_ asc,
+           ICD10 asc,
+           ICD___Custom_ asc,
+           Voucher_No asc,
+           Benefit_Type asc,
+           PRESENTED_NET_BILLED2 asc
+    ),
+MR_MEMBER25 as 
+    (select 
+           MR_MEMBER.CONT_NO,
+           MR_MEMBER.MBR_NO,
+           MR_MEMBER.MBRSHP_NO,
+           MR_MEMBER.SEX,
+           MR_MEMBER.DOB
+     from 
+            ( 
+                   ( 
+                          ( 
+                                 ( 
+                                        ( 
+                                              BUPAProd..CSR.MR_MEMBER MR_MEMBER
+                                        left outer  join 
+                                              BUPAProd..CSR.SY_SYS_CODE SY_SYS_CODE
+                                        on MR_MEMBER.MARITAL_STATUS = RTRIM ( SY_SYS_CODE.SYS_CODE )  and SY_SYS_CODE.SYS_TYPE = 'MARITAL_STATUS      ' ) 
+                                 left outer  join 
+                                       BUPAProd..CSR.MR_PROFESSION PROF
+                                 on MR_MEMBER.CCHI_JOB_CODE = PROF.PROF_CODE ) 
+                          left outer  join 
+                                BUPAProd..CSR.SY_SYS_CODE DR
+                          on MR_MEMBER.DEL_REASON = RTRIM ( DR.SYS_CODE )  and DR.SYS_TYPE = 'WEB_SUB_REASON      ' ) 
+                   left outer  join 
+                         BUPAProd..CSR.CT_PCC_MANAGER pcc
+                   on MR_MEMBER.PCC_MGR = pcc.EMP_ID ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_COUNTRY_CODE SY_COUNTRY_CODE
+            on MR_MEMBER.CTRY_CODE = SY_COUNTRY_CODE.SYS_CODE ) 
+     where MR_MEMBER.CONT_NO <> '49738600'),
+CL_CLPROVSTM03_HIST26 as 
+    (select 
+           CL_CLPROVSTM03_HIST.STM_ID as STM_ID,
+           CL_CLPROVSTM03_HIST.BATCH_ID as BATCH_ID,
+           CL_CLPROVSTM03_HIST.RPT_DATE as RPT_DATE,
+           CL_CLPROVSTM03_HIST.PROV_CODE as PROV_CODE,
+           CL_CLPROVSTM03_HIST.PROV_NAME as PROV_NAME,
+           CL_CLPROVSTM03_HIST.PERIOD as PERIOD,
+           CL_CLPROVSTM03_HIST.RCV_DATE as RCV_DATE,
+           CL_CLPROVSTM03_HIST.PRT_STM_IND as PRT_STM_IND,
+           CL_CLPROVSTM03_HIST.REFER_BATCH as REFER_BATCH,
+           CL_CLPROVSTM03_HIST.BILLED_AMT as BILLED_AMT,
+           CL_CLPROVSTM03_HIST.DISC_AMT as DISC_AMT,
+           CL_CLPROVSTM03_HIST.DED_AMT as DED_AMT,
+           CL_CLPROVSTM03_HIST.INV_MBRNO_AMT as INV_MBRNO_AMT,
+           CL_CLPROVSTM03_HIST.DIFF_COMP_AMT as DIFF_COMP_AMT,
+           CL_CLPROVSTM03_HIST.CLM_NOT_RV_AMT as CLM_NOT_RV_AMT,
+           CL_CLPROVSTM03_HIST.INVALID_SERVCODE_AMT as INVALID_SERVCODE_AMT,
+           CL_CLPROVSTM03_HIST.LAST_SUBMISSION_AMT as LAST_SUBMISSION_AMT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_A_TOT as DED_BUNDLE_A_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_B_TOT as DED_BUNDLE_B_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_C_TOT as DED_BUNDLE_C_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_D_TOT as DED_BUNDLE_D_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_F_TOT as DED_BUNDLE_F_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_H_TOT as DED_BUNDLE_H_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_B1_TOT as DED_BUNDLE_B1_TOT,
+           CL_CLPROVSTM03_HIST.DISC_DIFF as DISC_DIFF,
+           CL_CLPROVSTM03_HIST.DEDUCT_DIFF as DEDUCT_DIFF,
+           CL_CLPROVSTM03_HIST.PENDING as PENDING,
+           CL_CLPROVSTM03_HIST.CRT_USER as CRT_USER,
+           CL_CLPROVSTM03_HIST.CRT_DATE as CRT_DATE,
+           CL_CLPROVSTM03_HIST.STM_REQUESTER,
+           CL_CLPROVSTM03_HIST.SHORTFALL_PCT,
+           CL_CLPROVSTM03_HIST.ONLINE_STM_IND,
+           CL_CLPROVSTM03_HIST.FILE_PATH,
+           CL_CLPROVSTM03_HIST.INV_MBRNO_VAT_AMT,
+           CL_CLPROVSTM03_HIST.DIFF_COMP_VAT_AMT,
+           CL_CLPROVSTM03_HIST.CLM_NOT_RV_VAT_AMT,
+           CL_CLPROVSTM03_HIST.INVALID_SERVCODE_VAT_AMT,
+           CL_CLPROVSTM03_HIST.LAST_SUBMISSION_VAT_AMT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_A_VAT_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_B_VAT_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_B1_VAT_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_C_VAT_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_D_VAT_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_F_VAT_TOT,
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_H_VAT_TOT,
+           CL_CLPROVSTM03_HIST.PENDING_VAT,
+           CL_CLPROVSTM03_HIST.BILLED_VAT_AMT,
+           sum ( C.SHORTFALL_PRICE )  as SHORTFALL_PRICE
+     from 
+            ( 
+                  BUPAProd..CSR.CL_CLPROVSTM03_HIST CL_CLPROVSTM03_HIST
+            inner  join 
+                  BUPAProd..CSR.CL_CALC_V C
+            on C.BATCH_ID = CL_CLPROVSTM03_HIST.BATCH_ID ) 
+     group by 
+           CL_CLPROVSTM03_HIST.STM_ID, 
+           CL_CLPROVSTM03_HIST.BATCH_ID, 
+           CL_CLPROVSTM03_HIST.RPT_DATE, 
+           CL_CLPROVSTM03_HIST.PROV_CODE, 
+           CL_CLPROVSTM03_HIST.PROV_NAME, 
+           CL_CLPROVSTM03_HIST.PERIOD, 
+           CL_CLPROVSTM03_HIST.RCV_DATE, 
+           CL_CLPROVSTM03_HIST.PRT_STM_IND, 
+           CL_CLPROVSTM03_HIST.REFER_BATCH, 
+           CL_CLPROVSTM03_HIST.BILLED_AMT, 
+           CL_CLPROVSTM03_HIST.DISC_AMT, 
+           CL_CLPROVSTM03_HIST.DED_AMT, 
+           CL_CLPROVSTM03_HIST.INV_MBRNO_AMT, 
+           CL_CLPROVSTM03_HIST.DIFF_COMP_AMT, 
+           CL_CLPROVSTM03_HIST.CLM_NOT_RV_AMT, 
+           CL_CLPROVSTM03_HIST.INVALID_SERVCODE_AMT, 
+           CL_CLPROVSTM03_HIST.LAST_SUBMISSION_AMT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_A_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_B_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_C_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_D_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_F_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_H_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_B1_TOT, 
+           CL_CLPROVSTM03_HIST.DISC_DIFF, 
+           CL_CLPROVSTM03_HIST.DEDUCT_DIFF, 
+           CL_CLPROVSTM03_HIST.PENDING, 
+           CL_CLPROVSTM03_HIST.CRT_USER, 
+           CL_CLPROVSTM03_HIST.CRT_DATE, 
+           CL_CLPROVSTM03_HIST.STM_REQUESTER, 
+           CL_CLPROVSTM03_HIST.SHORTFALL_PCT, 
+           CL_CLPROVSTM03_HIST.ONLINE_STM_IND, 
+           CL_CLPROVSTM03_HIST.FILE_PATH, 
+           CL_CLPROVSTM03_HIST.INV_MBRNO_VAT_AMT, 
+           CL_CLPROVSTM03_HIST.DIFF_COMP_VAT_AMT, 
+           CL_CLPROVSTM03_HIST.CLM_NOT_RV_VAT_AMT, 
+           CL_CLPROVSTM03_HIST.INVALID_SERVCODE_VAT_AMT, 
+           CL_CLPROVSTM03_HIST.LAST_SUBMISSION_VAT_AMT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_A_VAT_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_B_VAT_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_B1_VAT_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_C_VAT_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_D_VAT_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_F_VAT_TOT, 
+           CL_CLPROVSTM03_HIST.DED_BUNDLE_H_VAT_TOT, 
+           CL_CLPROVSTM03_HIST.PENDING_VAT, 
+           CL_CLPROVSTM03_HIST.BILLED_VAT_AMT),
+CL_BATCH_HEADER22 as 
+    (select 
+           CL_BATCH_HEADER.BATCH_ID,
+           CL_BATCH_HEADER.PROV_CODE,
+           CL_BATCH_HEADER.RCV_DATE,
+           CL_BATCH_HEADER.PERIOD,
+           CL_BATCH_HEADER.CLAIM_TYPE,
+           CL_BATCH_HEADER.SERV_TYPE,
+           CL_BATCH_HEADER.INVOICES,
+           CL_BATCH_HEADER.STM_SENT_DATE1,
+           CL_BATCH_HEADER.BILL_PRESENT_AMT,
+           CL_BATCH_HEADER.BILL_DISC_AMT,
+           CL_BATCH_HEADER.BILL_DEDUCT_AMT,
+           CL_BATCH_HEADER.CRT_DATE,
+           CL_BATCH_HEADER.NOTES,
+           CL_BATCH_HEADER.UN_HOLD_DATE,
+           CL_BATCH_HEADER.VAT_AMT,
+           SY_STATUS_BATCH_HEADER.EDESC as BATCH_STATUS_DESC,
+           CL_BATCH_HEADER.BATCH_TYPE_DESC as BATCH_TYPE2,
+           SYS_SUBMIS_TYPE.EDESC as CLM_SUBMISSION_TYPE,
+           CL_BATCH_HEADER.TPA
+     from 
+            ( 
+                   ( 
+                         BUPAProd..CSR.CL_BATCH_HEADER CL_BATCH_HEADER
+                   inner  join 
+                         BUPAProd..CSR.SY_STATUS_BATCH_HEADER SY_STATUS_BATCH_HEADER
+                   on CL_BATCH_HEADER.STATUS = SY_STATUS_BATCH_HEADER.SYS_CODE ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_SYS_CODE SYS_SUBMIS_TYPE
+            on CL_BATCH_HEADER.CLM_SUBMIS_TYPE = SYS_SUBMIS_TYPE.SYS_CODE and SYS_TYPE = 'CLM_SUBMISSION_TYPE' ) ),
+PV_PROVIDER23 as 
+    (select 
+           PV_PROVIDER.PROV_CODE,
+           PV_PROVIDER.PV_RANK
+     from 
+            ( 
+                   ( 
+                          ( 
+                                 ( 
+                                        ( 
+                                               ( 
+                                                      ( 
+                                                            BUPAProd..CSR.PV_PROVIDER PV_PROVIDER
+                                                      inner  join 
+                                                            BUPAProd..CSR.DC_DISTRICT DC_DISTRICT
+                                                      on PV_PROVIDER.CORR_DIST_CODE = DC_DISTRICT.DIST_CODE ) 
+                                               left outer  join 
+                                                     BUPAProd..CSR.SY_PROVIDER_LEVEL SY_PROVIDER_LEVEL1
+                                               on PV_PROVIDER.PROV_LEVEL = SY_PROVIDER_LEVEL1.SYS_CODE ) 
+                                        left outer  join 
+                                              BUPAProd..CSR.SY_PRACTICE_TYPE SY_PRACTICE_TYPE
+                                        on PV_PROVIDER.PRACTICE_TYPE = SY_PRACTICE_TYPE.SYS_CODE ) 
+                                 left outer  join 
+                                       BUPAProd..CSR.PV_PROV_LVL_MVMNT
+                                 on PV_PROVIDER.PROV_CODE = PV_PROV_LVL_MVMNT.PROV_CODE ) 
+                          left outer  join 
+                                BUPAProd..CSR.SY_PROVIDER_LEVEL SY_PROVIDER_LEVEL2
+                          on PV_PROV_LVL_MVMNT.PROV_LEVEL = SY_PROVIDER_LEVEL2.SYS_CODE ) 
+                   left outer  join 
+                         BUPAProd..CSR.SY_SYS_CODE VRS
+                   on trim ( VRS.SYS_CODE )  = PV_PROVIDER.VAT_REG_STATUS and trim ( VRS.SYS_TYPE )  = 'VAT_REG_STATUS' ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_SYS_CODE CTC
+            on trim ( CTC.SYS_CODE )  = PV_PROVIDER.CTRY_CODE and trim ( CTC.SYS_TYPE )  = 'COUNTRY_CODE' ) 
+     where PV_PROV_LVL_MVMNT.END_DATE is null and PV_PROVIDER.PRACTICE_TYPE <> 280),
+SY_PROVIDER_RANK24 as 
+    (select 
+           SYS_CODE,
+           EDESC as PV_RANK
+     from 
+           BUPAProd..CSR.SY_SYS_CODE
+     where SYS_TYPE = 'PV_RANK'),
+D4 as 
+    (select 
+           CL_BATCH_HEADER22.BATCH_ID  as  Batch_ID,
+           CL_BATCH_HEADER22.RCV_DATE  as  Batch_Received_Date,
+           case when (CL_BATCH_HEADER22.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER22.RCV_DATE else CL_BATCH_HEADER22.UN_HOLD_DATE end   as  c3,
+           CL_BATCH_HEADER22.CRT_DATE  as  Create_Date,
+           CL_BATCH_HEADER22.STM_SENT_DATE1  as  C_1_Sent_to_Provider_Date,
+           CL_BATCH_HEADER22.PERIOD  as  Batch_Period,
+           to_date((((substring(CL_BATCH_HEADER22.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER22.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD')  as  Date_of_Batch__Custom_,
+           trim(PV_PROVIDER23.PROV_CODE)  as  Provider_Code,
+           case 
+             when CL_BATCH_HEADER22.SERV_TYPE = 'OP' then 'OP Package'
+             when CL_BATCH_HEADER22.CLAIM_TYPE = 'I' then 'In Patient'
+             when CL_BATCH_HEADER22.CLAIM_TYPE = 'O' then 'Out Patient'
+             else 'Both'
+           end  as  Batch_Type,
+           case when (CL_BATCH_HEADER22.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+             else 'NON-INTEGRATION'
+           end  as  PP_Batch_Type__Custom_,
+           CL_BATCH_HEADER22.BATCH_TYPE2  as  Batch_Type_2,
+           case 
+             when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+             when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER22.TPA = 'TPA')) then 'Aramco'
+             else 'Other'
+           end  as  Customer_Flag__Custom_,
+           CL_BATCH_HEADER22.BATCH_STATUS_DESC  as  Batch_Status,
+           CL_BATCH_HEADER22.CLM_SUBMISSION_TYPE  as  Claim_Submission_Type,
+           case 
+             when PV_PROVIDER23.PV_RANK = 'T20' then 'a. Top 20'
+             when PV_PROVIDER23.PV_RANK = 'T50' then 'b. Top 50'
+             when PV_PROVIDER23.PV_RANK = 'T100' then 'c. Top 100'
+             when PV_PROVIDER23.PV_RANK = 'A100' then 'd. Above 100'
+             else ('e. ' || SY_PROVIDER_RANK24.PV_RANK)
+           end  as  Provider_Rank,
+           case 
+             when case 
+                   when PV_PROVIDER23.PV_RANK = 'T20' then 'a. Top 20'
+                   when PV_PROVIDER23.PV_RANK = 'T50' then 'b. Top 50'
+                   when PV_PROVIDER23.PV_RANK = 'T100' then 'c. Top 100'
+                   when PV_PROVIDER23.PV_RANK = 'A100' then 'd. Above 100'
+                   else ('e. ' || SY_PROVIDER_RANK24.PV_RANK)
+                 end = 'e. Governmental' then 'Government'
+             else 'Non-Government'
+           end  as  Provider_Rank__Custom_,
+           CL_BATCH_HEADER22.TPA  as  TPA_Batch,
+           case 
+             when CL_BATCH_HEADER22.TPA = 'N' then 'NON TPA'
+             when CL_BATCH_HEADER22.TPA = 'Y' then 'TPA'
+             else CL_BATCH_HEADER22.TPA
+           end  as  TPA_Batch__Custom_,
+           MR_MEMBER25.MBRSHP_NO  as  Bupa_ID,
+           MR_MEMBER25.SEX  as  Member_Gender,
+           case 
+             when (_years_between({sysdate},MR_MEMBER25.DOB) <= 10) then '0 to 10'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) between 11 and 20) then '11 to 20'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) between 21 and 30) then '21 to 30'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) between 31 and 40) then '31 to 40'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) between 41 and 50) then '41 to 50'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) between 51 and 60) then '51 to 60'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) > 60) then '> 60'
+             else 'Unknown'
+           end  as  Age_Group__Custom_,
+           case 
+             when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+             when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+             when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%NON-PP%') then 'Non PP'
+             else null
+           end  as  Delay_Reason__Custom_,
+           ((nvl(CL_BATCH_HEADER22.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER22.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER22.BILL_DEDUCT_AMT,0))  as  PROV_Netbilled,
+           CL_BATCH_HEADER22.VAT_AMT  as  VAT_AMT,
+           CL_BATCH_HEADER22.INVOICES  as  CCU_Invoice_Count,
+           CL_CLPROVSTM03_HIST26.PRT_STM_IND  as  Statement_Type,
+           case 
+             when CL_CLPROVSTM03_HIST26.PRT_STM_IND = 'I' then 'INITIAL'
+             when CL_CLPROVSTM03_HIST26.PRT_STM_IND = 'R' then 'REWORK'
+             else CL_CLPROVSTM03_HIST26.PRT_STM_IND
+           end  as  Statement_Type__Custom_,
+           CL_CLPROVSTM03_HIST26.REFER_BATCH  as  Referral_Batch,
+           case 
+             when CL_CLPROVSTM03_HIST26.REFER_BATCH = 'N' then 'NON-REFERRAL'
+             when CL_CLPROVSTM03_HIST26.REFER_BATCH = 'Y' then 'REFERRAL'
+             else CL_CLPROVSTM03_HIST26.REFER_BATCH
+           end  as  Referral_Batch__Custom_,
+           CL_CLPROVSTM03_HIST26.STM_ID  as  STM_ID,
+           ((CL_CLPROVSTM03_HIST26.BILLED_AMT - CL_CLPROVSTM03_HIST26.DISC_AMT) - CL_CLPROVSTM03_HIST26.DED_AMT)  as  NET_Billed,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT  as  A__Appropriateness_of_Care,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT  as  B__Technical_Contractual,
+           CL_CLPROVSTM03_HIST26.SHORTFALL_PRICE  as  B_1_Billed_Over_Agreed_Price,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT  as  C__Policy_Compliance,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT  as  D__Pre_Authorisation,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT  as  E_Unwarranted_Variations,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT  as  H__Pharmacy_Benefit_Management,
+           CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT  as  Invalid_Membership,
+           CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT  as  Difference_in_Computation,
+           CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT  as  Claims_Not_Received,
+           CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT  as  Invalid_Service_Code,
+           CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT  as  Late_Submssion,
+           CL_CLPROVSTM03_HIST26.PENDING  as  Pending,
+           CL_CLPROVSTM03_HIST26.DISC_DIFF  as  Discount_Difference,
+           CL_CLPROVSTM03_HIST26.DEDUCT_DIFF  as  Deductible_Difference,
+           (((CL_CLPROVSTM03_HIST26.BILLED_AMT - CL_CLPROVSTM03_HIST26.DISC_AMT) - CL_CLPROVSTM03_HIST26.DED_AMT) - ((((((((CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT + CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT) + CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT) + CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT) + CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT) + CL_CLPROVSTM03_HIST26.DISC_DIFF) + CL_CLPROVSTM03_HIST26.DEDUCT_DIFF) + ((((((CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT + CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT) + nvl(CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT,0)) + nvl(CL_CLPROVSTM03_HIST26.DED_BUNDLE_B1_TOT,0))) + CL_CLPROVSTM03_HIST26.PENDING))  as  APPROVED_to_Pay,
+           ((((((((((((((CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT + CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT) + CL_CLPROVSTM03_HIST26.SHORTFALL_PRICE) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT) + CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT) + CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT) + CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT) + CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT) + CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT) + CL_CLPROVSTM03_HIST26.PENDING) + CL_CLPROVSTM03_HIST26.DISC_DIFF) + CL_CLPROVSTM03_HIST26.DEDUCT_DIFF)  as  Total_Claim_Rejection,
+           (((nvl(CL_BATCH_HEADER22.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER22.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER22.BILL_DEDUCT_AMT,0)) + CL_BATCH_HEADER22.VAT_AMT)  as  rc,
+           RSUM(1  at CL_BATCH_HEADER22.BATCH_ID,CL_BATCH_HEADER22.RCV_DATE,case when (CL_BATCH_HEADER22.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER22.RCV_DATE else CL_BATCH_HEADER22.UN_HOLD_DATE end ,CL_BATCH_HEADER22.CRT_DATE,CL_BATCH_HEADER22.STM_SENT_DATE1,CL_BATCH_HEADER22.PERIOD,to_date((((substring(CL_BATCH_HEADER22.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER22.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD'),trim(PV_PROVIDER23.PROV_CODE),case 
+  when CL_BATCH_HEADER22.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER22.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER22.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end,case when (CL_BATCH_HEADER22.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end,CL_BATCH_HEADER22.BATCH_TYPE2,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER22.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end,CL_BATCH_HEADER22.BATCH_STATUS_DESC,CL_BATCH_HEADER22.CLM_SUBMISSION_TYPE,case 
+  when PV_PROVIDER23.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER23.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER23.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER23.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK24.PV_RANK)
+end,case 
+  when case 
+        when PV_PROVIDER23.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER23.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER23.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER23.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK24.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end,CL_BATCH_HEADER22.TPA,case 
+  when CL_BATCH_HEADER22.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER22.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER22.TPA
+end,MR_MEMBER25.MBRSHP_NO,MR_MEMBER25.SEX,case 
+  when (_years_between({sysdate},MR_MEMBER25.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) > 60) then '> 60'
+  else 'Unknown'
+end,case 
+  when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end,((nvl(CL_BATCH_HEADER22.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER22.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER22.BILL_DEDUCT_AMT,0)),CL_BATCH_HEADER22.VAT_AMT,CL_BATCH_HEADER22.INVOICES,CL_CLPROVSTM03_HIST26.PRT_STM_IND,case 
+  when CL_CLPROVSTM03_HIST26.PRT_STM_IND = 'I' then 'INITIAL'
+  when CL_CLPROVSTM03_HIST26.PRT_STM_IND = 'R' then 'REWORK'
+  else CL_CLPROVSTM03_HIST26.PRT_STM_IND
+end,CL_CLPROVSTM03_HIST26.REFER_BATCH,case 
+  when CL_CLPROVSTM03_HIST26.REFER_BATCH = 'N' then 'NON-REFERRAL'
+  when CL_CLPROVSTM03_HIST26.REFER_BATCH = 'Y' then 'REFERRAL'
+  else CL_CLPROVSTM03_HIST26.REFER_BATCH
+end,CL_CLPROVSTM03_HIST26.STM_ID,((CL_CLPROVSTM03_HIST26.BILLED_AMT - CL_CLPROVSTM03_HIST26.DISC_AMT) - CL_CLPROVSTM03_HIST26.DED_AMT),CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT,CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT,CL_CLPROVSTM03_HIST26.SHORTFALL_PRICE,CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT,CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT,CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT,CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT,CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT,CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT,CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT,CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT,CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT,CL_CLPROVSTM03_HIST26.PENDING,CL_CLPROVSTM03_HIST26.DISC_DIFF,CL_CLPROVSTM03_HIST26.DEDUCT_DIFF,(((CL_CLPROVSTM03_HIST26.BILLED_AMT - CL_CLPROVSTM03_HIST26.DISC_AMT) - CL_CLPROVSTM03_HIST26.DED_AMT) - ((((((((CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT + CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT) + CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT) + CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT) + CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT) + CL_CLPROVSTM03_HIST26.DISC_DIFF) + CL_CLPROVSTM03_HIST26.DEDUCT_DIFF) + ((((((CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT + CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT) + nvl(CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT,0)) + nvl(CL_CLPROVSTM03_HIST26.DED_BUNDLE_B1_TOT,0))) + CL_CLPROVSTM03_HIST26.PENDING)),((((((((((((((CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT + CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT) + CL_CLPROVSTM03_HIST26.SHORTFALL_PRICE) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT) + CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT) + CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT) + CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT) + CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT) + CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT) + CL_CLPROVSTM03_HIST26.PENDING) + CL_CLPROVSTM03_HIST26.DISC_DIFF) + CL_CLPROVSTM03_HIST26.DEDUCT_DIFF)  for CL_BATCH_HEADER22.BATCH_ID,CL_BATCH_HEADER22.RCV_DATE,case when (CL_BATCH_HEADER22.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER22.RCV_DATE else CL_BATCH_HEADER22.UN_HOLD_DATE end ,CL_BATCH_HEADER22.CRT_DATE,CL_BATCH_HEADER22.STM_SENT_DATE1,CL_BATCH_HEADER22.PERIOD,to_date((((substring(CL_BATCH_HEADER22.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER22.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD'),trim(PV_PROVIDER23.PROV_CODE),case 
+  when CL_BATCH_HEADER22.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER22.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER22.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end,case when (CL_BATCH_HEADER22.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end,CL_BATCH_HEADER22.BATCH_TYPE2,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER22.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end,CL_BATCH_HEADER22.BATCH_STATUS_DESC,CL_BATCH_HEADER22.CLM_SUBMISSION_TYPE,case 
+  when PV_PROVIDER23.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER23.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER23.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER23.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK24.PV_RANK)
+end,case 
+  when case 
+        when PV_PROVIDER23.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER23.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER23.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER23.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK24.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end,CL_BATCH_HEADER22.TPA,case 
+  when CL_BATCH_HEADER22.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER22.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER22.TPA
+end,MR_MEMBER25.MBRSHP_NO,MR_MEMBER25.SEX,case 
+  when (_years_between({sysdate},MR_MEMBER25.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) > 60) then '> 60'
+  else 'Unknown'
+end,case 
+  when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end,((nvl(CL_BATCH_HEADER22.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER22.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER22.BILL_DEDUCT_AMT,0)),CL_BATCH_HEADER22.VAT_AMT,CL_BATCH_HEADER22.INVOICES  order by CL_BATCH_HEADER22.BATCH_ID asc,CL_BATCH_HEADER22.RCV_DATE asc,case when (CL_BATCH_HEADER22.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER22.RCV_DATE else CL_BATCH_HEADER22.UN_HOLD_DATE end  asc,CL_BATCH_HEADER22.CRT_DATE asc,CL_BATCH_HEADER22.STM_SENT_DATE1 asc,CL_BATCH_HEADER22.PERIOD asc,to_date((((substring(CL_BATCH_HEADER22.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER22.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD') asc,trim(PV_PROVIDER23.PROV_CODE) asc,case 
+  when CL_BATCH_HEADER22.SERV_TYPE = 'OP' then 'OP Package'
+  when CL_BATCH_HEADER22.CLAIM_TYPE = 'I' then 'In Patient'
+  when CL_BATCH_HEADER22.CLAIM_TYPE = 'O' then 'Out Patient'
+  else 'Both'
+end asc,case when (CL_BATCH_HEADER22.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+  else 'NON-INTEGRATION'
+end asc,CL_BATCH_HEADER22.BATCH_TYPE2 asc,case 
+  when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+  when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER22.TPA = 'TPA')) then 'Aramco'
+  else 'Other'
+end asc,CL_BATCH_HEADER22.BATCH_STATUS_DESC asc,CL_BATCH_HEADER22.CLM_SUBMISSION_TYPE asc,case 
+  when PV_PROVIDER23.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER23.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER23.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER23.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK24.PV_RANK)
+end asc,case 
+  when case 
+        when PV_PROVIDER23.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER23.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER23.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER23.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK24.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end asc,CL_BATCH_HEADER22.TPA asc,case 
+  when CL_BATCH_HEADER22.TPA = 'N' then 'NON TPA'
+  when CL_BATCH_HEADER22.TPA = 'Y' then 'TPA'
+  else CL_BATCH_HEADER22.TPA
+end asc,MR_MEMBER25.MBRSHP_NO asc,MR_MEMBER25.SEX asc,case 
+  when (_years_between({sysdate},MR_MEMBER25.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER25.DOB) > 60) then '> 60'
+  else 'Unknown'
+end asc,case 
+  when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+  when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+  when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%NON-PP%') then 'Non PP'
+  else null
+end asc,((nvl(CL_BATCH_HEADER22.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER22.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER22.BILL_DEDUCT_AMT,0)) asc,CL_BATCH_HEADER22.VAT_AMT asc,CL_BATCH_HEADER22.INVOICES asc,CL_CLPROVSTM03_HIST26.PRT_STM_IND asc,case 
+  when CL_CLPROVSTM03_HIST26.PRT_STM_IND = 'I' then 'INITIAL'
+  when CL_CLPROVSTM03_HIST26.PRT_STM_IND = 'R' then 'REWORK'
+  else CL_CLPROVSTM03_HIST26.PRT_STM_IND
+end asc,CL_CLPROVSTM03_HIST26.REFER_BATCH asc,case 
+  when CL_CLPROVSTM03_HIST26.REFER_BATCH = 'N' then 'NON-REFERRAL'
+  when CL_CLPROVSTM03_HIST26.REFER_BATCH = 'Y' then 'REFERRAL'
+  else CL_CLPROVSTM03_HIST26.REFER_BATCH
+end asc,CL_CLPROVSTM03_HIST26.STM_ID asc,((CL_CLPROVSTM03_HIST26.BILLED_AMT - CL_CLPROVSTM03_HIST26.DISC_AMT) - CL_CLPROVSTM03_HIST26.DED_AMT) asc,CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT asc,CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT asc,CL_CLPROVSTM03_HIST26.SHORTFALL_PRICE asc,CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT asc,CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT asc,CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT asc,CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT asc,CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT asc,CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT asc,CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT asc,CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT asc,CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT asc,CL_CLPROVSTM03_HIST26.PENDING asc,CL_CLPROVSTM03_HIST26.DISC_DIFF asc,CL_CLPROVSTM03_HIST26.DEDUCT_DIFF asc,(((CL_CLPROVSTM03_HIST26.BILLED_AMT - CL_CLPROVSTM03_HIST26.DISC_AMT) - CL_CLPROVSTM03_HIST26.DED_AMT) - ((((((((CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT + CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT) + CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT) + CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT) + CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT) + CL_CLPROVSTM03_HIST26.DISC_DIFF) + CL_CLPROVSTM03_HIST26.DEDUCT_DIFF) + ((((((CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT + CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT) + nvl(CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT,0)) + nvl(CL_CLPROVSTM03_HIST26.DED_BUNDLE_B1_TOT,0))) + CL_CLPROVSTM03_HIST26.PENDING)) asc,((((((((((((((CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT + CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT) + CL_CLPROVSTM03_HIST26.SHORTFALL_PRICE) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT) + CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT) + CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT) + CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT) + CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT) + CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT) + CL_CLPROVSTM03_HIST26.PENDING) + CL_CLPROVSTM03_HIST26.DISC_DIFF) + CL_CLPROVSTM03_HIST26.DEDUCT_DIFF) asc  local)  as  sc
+     from 
+           BUPAProd..CSR.CT_CONTACT CT_CONTACT
+            left outer join 
+           MR_MEMBER25
+            on ((CT_CONTACT.CONT_NO = MR_MEMBER25.CONT_NO) and (CT_CONTACT.MBR_NO = MR_MEMBER25.MBR_NO))
+            left outer join 
+           (
+               CL_CLPROVSTM03_HIST26
+                join 
+               CL_BATCH_HEADER22
+                on (CL_CLPROVSTM03_HIST26.BATCH_ID = CL_BATCH_HEADER22.BATCH_ID)
+                join 
+               PV_PROVIDER23
+                on (CL_BATCH_HEADER22.PROV_CODE = PV_PROVIDER23.PROV_CODE)
+           )
+            on (CT_CONTACT.PROV_CODE = PV_PROVIDER23.PROV_CODE)
+            left outer join 
+           SY_PROVIDER_RANK24
+            on (PV_PROVIDER23.PV_RANK = SY_PROVIDER_RANK24.SYS_CODE)
+     where 
+           (((CL_BATCH_HEADER22.RCV_DATE >= DATE '2023-01-01') or (CL_BATCH_HEADER22.PERIOD >= 202301)) or ((CL_BATCH_HEADER22.RCV_DATE is NULL) and (CL_BATCH_HEADER22.PERIOD >= 202301))) and 
+           (trim(PV_PROVIDER23.PROV_CODE) in ('20088'))
+     group by 
+           CL_BATCH_HEADER22.BATCH_ID,
+           CL_BATCH_HEADER22.RCV_DATE,
+           case when (CL_BATCH_HEADER22.UN_HOLD_DATE is NULL) then CL_BATCH_HEADER22.RCV_DATE else CL_BATCH_HEADER22.UN_HOLD_DATE end ,
+           CL_BATCH_HEADER22.CRT_DATE,
+           CL_BATCH_HEADER22.STM_SENT_DATE1,
+           CL_BATCH_HEADER22.PERIOD,
+           to_date((((substring(CL_BATCH_HEADER22.PERIOD from 1 for 4) || '-') || substring(CL_BATCH_HEADER22.PERIOD from 5 for 2)) || '-01'),'YYYY-MM-DD'),
+           trim(PV_PROVIDER23.PROV_CODE),
+           case 
+             when CL_BATCH_HEADER22.SERV_TYPE = 'OP' then 'OP Package'
+             when CL_BATCH_HEADER22.CLAIM_TYPE = 'I' then 'In Patient'
+             when CL_BATCH_HEADER22.CLAIM_TYPE = 'O' then 'Out Patient'
+             else 'Both'
+           end,
+           case when (CL_BATCH_HEADER22.CLM_SUBMISSION_TYPE in ('Nphies','DHS','Direct Integration')) then 'INTEGRATION'
+             else 'NON-INTEGRATION'
+           end,
+           CL_BATCH_HEADER22.BATCH_TYPE2,
+           case 
+             when (position('SABIC' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0) then 'Sabic'
+             when (((position('ARAMCO' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0) or (position('SAUDI ARABIAN OIL COMPANY' IN upper(trim(coalesce(CL_BATCH_HEADER22.BATCH_TYPE2,'')))) > 0)) or (CL_BATCH_HEADER22.TPA = 'TPA')) then 'Aramco'
+             else 'Other'
+           end,
+           CL_BATCH_HEADER22.BATCH_STATUS_DESC,
+           CL_BATCH_HEADER22.CLM_SUBMISSION_TYPE,
+           case 
+             when PV_PROVIDER23.PV_RANK = 'T20' then 'a. Top 20'
+             when PV_PROVIDER23.PV_RANK = 'T50' then 'b. Top 50'
+             when PV_PROVIDER23.PV_RANK = 'T100' then 'c. Top 100'
+             when PV_PROVIDER23.PV_RANK = 'A100' then 'd. Above 100'
+             else ('e. ' || SY_PROVIDER_RANK24.PV_RANK)
+           end,
+           case 
+             when case 
+                   when PV_PROVIDER23.PV_RANK = 'T20' then 'a. Top 20'
+                   when PV_PROVIDER23.PV_RANK = 'T50' then 'b. Top 50'
+                   when PV_PROVIDER23.PV_RANK = 'T100' then 'c. Top 100'
+                   when PV_PROVIDER23.PV_RANK = 'A100' then 'd. Above 100'
+                   else ('e. ' || SY_PROVIDER_RANK24.PV_RANK)
+                 end = 'e. Governmental' then 'Government'
+             else 'Non-Government'
+           end,
+           CL_BATCH_HEADER22.TPA,
+           case 
+             when CL_BATCH_HEADER22.TPA = 'N' then 'NON TPA'
+             when CL_BATCH_HEADER22.TPA = 'Y' then 'TPA'
+             else CL_BATCH_HEADER22.TPA
+           end,
+           MR_MEMBER25.MBRSHP_NO,
+           MR_MEMBER25.SEX,
+           case 
+             when (_years_between({sysdate},MR_MEMBER25.DOB) <= 10) then '0 to 10'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) between 11 and 20) then '11 to 20'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) between 21 and 30) then '21 to 30'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) between 31 and 40) then '31 to 40'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) between 41 and 50) then '41 to 50'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) between 51 and 60) then '51 to 60'
+             when (_years_between({sysdate},MR_MEMBER25.DOB) > 60) then '> 60'
+             else 'Unknown'
+           end,
+           case 
+             when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%PP STO%') then 'PP Stopped'
+             when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%LATE SUB%') then 'Late Submission'
+             when (upper(coalesce(CL_BATCH_HEADER22.NOTES,'')) like '%NON-PP%') then 'Non PP'
+             else null
+           end,
+           ((nvl(CL_BATCH_HEADER22.BILL_PRESENT_AMT,0) - nvl(CL_BATCH_HEADER22.BILL_DISC_AMT,0)) - nvl(CL_BATCH_HEADER22.BILL_DEDUCT_AMT,0)),
+           CL_BATCH_HEADER22.VAT_AMT,
+           CL_BATCH_HEADER22.INVOICES,
+           CL_CLPROVSTM03_HIST26.PRT_STM_IND,
+           case 
+             when CL_CLPROVSTM03_HIST26.PRT_STM_IND = 'I' then 'INITIAL'
+             when CL_CLPROVSTM03_HIST26.PRT_STM_IND = 'R' then 'REWORK'
+             else CL_CLPROVSTM03_HIST26.PRT_STM_IND
+           end,
+           CL_CLPROVSTM03_HIST26.REFER_BATCH,
+           case 
+             when CL_CLPROVSTM03_HIST26.REFER_BATCH = 'N' then 'NON-REFERRAL'
+             when CL_CLPROVSTM03_HIST26.REFER_BATCH = 'Y' then 'REFERRAL'
+             else CL_CLPROVSTM03_HIST26.REFER_BATCH
+           end,
+           CL_CLPROVSTM03_HIST26.STM_ID,
+           ((CL_CLPROVSTM03_HIST26.BILLED_AMT - CL_CLPROVSTM03_HIST26.DISC_AMT) - CL_CLPROVSTM03_HIST26.DED_AMT),
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT,
+           CL_CLPROVSTM03_HIST26.SHORTFALL_PRICE,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT,
+           CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT,
+           CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT,
+           CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT,
+           CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT,
+           CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT,
+           CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT,
+           CL_CLPROVSTM03_HIST26.PENDING,
+           CL_CLPROVSTM03_HIST26.DISC_DIFF,
+           CL_CLPROVSTM03_HIST26.DEDUCT_DIFF,
+           (((CL_CLPROVSTM03_HIST26.BILLED_AMT - CL_CLPROVSTM03_HIST26.DISC_AMT) - CL_CLPROVSTM03_HIST26.DED_AMT) - ((((((((CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT + CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT) + CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT) + CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT) + CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT) + CL_CLPROVSTM03_HIST26.DISC_DIFF) + CL_CLPROVSTM03_HIST26.DEDUCT_DIFF) + ((((((CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT + CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT) + nvl(CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT,0)) + nvl(CL_CLPROVSTM03_HIST26.DED_BUNDLE_B1_TOT,0))) + CL_CLPROVSTM03_HIST26.PENDING)),
+           ((((((((((((((CL_CLPROVSTM03_HIST26.DED_BUNDLE_A_TOT + CL_CLPROVSTM03_HIST26.DED_BUNDLE_B_TOT) + CL_CLPROVSTM03_HIST26.SHORTFALL_PRICE) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_C_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_D_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_F_TOT) + CL_CLPROVSTM03_HIST26.DED_BUNDLE_H_TOT) + CL_CLPROVSTM03_HIST26.INV_MBRNO_AMT) + CL_CLPROVSTM03_HIST26.DIFF_COMP_AMT) + CL_CLPROVSTM03_HIST26.CLM_NOT_RV_AMT) + CL_CLPROVSTM03_HIST26.INVALID_SERVCODE_AMT) + CL_CLPROVSTM03_HIST26.LAST_SUBMISSION_AMT) + CL_CLPROVSTM03_HIST26.PENDING) + CL_CLPROVSTM03_HIST26.DISC_DIFF) + CL_CLPROVSTM03_HIST26.DEDUCT_DIFF)
+     order by 
+           Batch_ID asc,
+           Batch_Received_Date asc,
+           c3 asc,
+           Create_Date asc,
+           C_1_Sent_to_Provider_Date asc,
+           Batch_Period asc,
+           Date_of_Batch__Custom_ asc,
+           Provider_Code asc,
+           Batch_Type asc,
+           PP_Batch_Type__Custom_ asc,
+           Batch_Type_2 asc,
+           Customer_Flag__Custom_ asc,
+           Batch_Status asc,
+           Claim_Submission_Type asc,
+           Provider_Rank asc,
+           Provider_Rank__Custom_ asc,
+           TPA_Batch asc,
+           TPA_Batch__Custom_ asc,
+           Bupa_ID asc,
+           Member_Gender asc,
+           Age_Group__Custom_ asc,
+           Delay_Reason__Custom_ asc,
+           PROV_Netbilled asc,
+           VAT_AMT asc,
+           CCU_Invoice_Count asc,
+           Statement_Type asc,
+           Statement_Type__Custom_ asc,
+           Referral_Batch asc,
+           Referral_Batch__Custom_ asc,
+           STM_ID asc,
+           NET_Billed asc,
+           A__Appropriateness_of_Care asc,
+           B__Technical_Contractual asc,
+           B_1_Billed_Over_Agreed_Price asc,
+           C__Policy_Compliance asc,
+           D__Pre_Authorisation asc,
+           E_Unwarranted_Variations asc,
+           H__Pharmacy_Benefit_Management asc,
+           Invalid_Membership asc,
+           Difference_in_Computation asc,
+           Claims_Not_Received asc,
+           Invalid_Service_Code asc,
+           Late_Submssion asc,
+           Pending asc,
+           Discount_Difference asc,
+           Deductible_Difference asc,
+           APPROVED_to_Pay asc,
+           Total_Claim_Rejection asc
+    ),
+MR_MEMBER29 as 
+    (select 
+           MR_MEMBER.CONT_NO,
+           MR_MEMBER.MBR_NO,
+           MR_MEMBER.MBRSHP_NO,
+           MR_MEMBER.SEX,
+           MR_MEMBER.DOB
+     from 
+            ( 
+                   ( 
+                          ( 
+                                 ( 
+                                        ( 
+                                              BUPAProd..CSR.MR_MEMBER MR_MEMBER
+                                        left outer  join 
+                                              BUPAProd..CSR.SY_SYS_CODE SY_SYS_CODE
+                                        on MR_MEMBER.MARITAL_STATUS = RTRIM ( SY_SYS_CODE.SYS_CODE )  and SY_SYS_CODE.SYS_TYPE = 'MARITAL_STATUS      ' ) 
+                                 left outer  join 
+                                       BUPAProd..CSR.MR_PROFESSION PROF
+                                 on MR_MEMBER.CCHI_JOB_CODE = PROF.PROF_CODE ) 
+                          left outer  join 
+                                BUPAProd..CSR.SY_SYS_CODE DR
+                          on MR_MEMBER.DEL_REASON = RTRIM ( DR.SYS_CODE )  and DR.SYS_TYPE = 'WEB_SUB_REASON      ' ) 
+                   left outer  join 
+                         BUPAProd..CSR.CT_PCC_MANAGER pcc
+                   on MR_MEMBER.PCC_MGR = pcc.EMP_ID ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_COUNTRY_CODE SY_COUNTRY_CODE
+            on MR_MEMBER.CTRY_CODE = SY_COUNTRY_CODE.SYS_CODE ) 
+     where MR_MEMBER.CONT_NO <> '49738600'),
+PV_PROVIDER27 as 
+    (select 
+           PV_PROVIDER.PROV_CODE,
+           PV_PROVIDER.PV_RANK
+     from 
+            ( 
+                   ( 
+                          ( 
+                                 ( 
+                                        ( 
+                                               ( 
+                                                      ( 
+                                                            BUPAProd..CSR.PV_PROVIDER PV_PROVIDER
+                                                      inner  join 
+                                                            BUPAProd..CSR.DC_DISTRICT DC_DISTRICT
+                                                      on PV_PROVIDER.CORR_DIST_CODE = DC_DISTRICT.DIST_CODE ) 
+                                               left outer  join 
+                                                     BUPAProd..CSR.SY_PROVIDER_LEVEL SY_PROVIDER_LEVEL1
+                                               on PV_PROVIDER.PROV_LEVEL = SY_PROVIDER_LEVEL1.SYS_CODE ) 
+                                        left outer  join 
+                                              BUPAProd..CSR.SY_PRACTICE_TYPE SY_PRACTICE_TYPE
+                                        on PV_PROVIDER.PRACTICE_TYPE = SY_PRACTICE_TYPE.SYS_CODE ) 
+                                 left outer  join 
+                                       BUPAProd..CSR.PV_PROV_LVL_MVMNT
+                                 on PV_PROVIDER.PROV_CODE = PV_PROV_LVL_MVMNT.PROV_CODE ) 
+                          left outer  join 
+                                BUPAProd..CSR.SY_PROVIDER_LEVEL SY_PROVIDER_LEVEL2
+                          on PV_PROV_LVL_MVMNT.PROV_LEVEL = SY_PROVIDER_LEVEL2.SYS_CODE ) 
+                   left outer  join 
+                         BUPAProd..CSR.SY_SYS_CODE VRS
+                   on trim ( VRS.SYS_CODE )  = PV_PROVIDER.VAT_REG_STATUS and trim ( VRS.SYS_TYPE )  = 'VAT_REG_STATUS' ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_SYS_CODE CTC
+            on trim ( CTC.SYS_CODE )  = PV_PROVIDER.CTRY_CODE and trim ( CTC.SYS_TYPE )  = 'COUNTRY_CODE' ) 
+     where PV_PROV_LVL_MVMNT.END_DATE is null and PV_PROVIDER.PRACTICE_TYPE <> 280),
+PV_AGREEMENT30 as 
+    (select 
+           "A".*,
+           SS.EDESC as SFDA_STATUS_DESC
+     from 
+            ( 
+                  BUPAProd..CSR.PV_AGREEMENT A
+            left outer  join 
+                  BUPAProd..CSR.SY_SYS_CODE SS
+            on trim ( SS.SYS_CODE )  = A.SFDA_STATUS and trim ( SS.SYS_TYPE )  = 'SFDA_STATUS' ) ),
+SY_PROVIDER_RANK28 as 
+    (select 
+           SYS_CODE,
+           EDESC as PV_RANK
+     from 
+           BUPAProd..CSR.SY_SYS_CODE
+     where SYS_TYPE = 'PV_RANK'),
+D5 as 
+    (select 
+           trim(PV_PROVIDER27.PROV_CODE)  as  Provider_Code,
+           case 
+             when PV_PROVIDER27.PV_RANK = 'T20' then 'a. Top 20'
+             when PV_PROVIDER27.PV_RANK = 'T50' then 'b. Top 50'
+             when PV_PROVIDER27.PV_RANK = 'T100' then 'c. Top 100'
+             when PV_PROVIDER27.PV_RANK = 'A100' then 'd. Above 100'
+             else ('e. ' || SY_PROVIDER_RANK28.PV_RANK)
+           end  as  Provider_Rank,
+           case 
+             when case 
+                   when PV_PROVIDER27.PV_RANK = 'T20' then 'a. Top 20'
+                   when PV_PROVIDER27.PV_RANK = 'T50' then 'b. Top 50'
+                   when PV_PROVIDER27.PV_RANK = 'T100' then 'c. Top 100'
+                   when PV_PROVIDER27.PV_RANK = 'A100' then 'd. Above 100'
+                   else ('e. ' || SY_PROVIDER_RANK28.PV_RANK)
+                 end = 'e. Governmental' then 'Government'
+             else 'Non-Government'
+           end  as  Provider_Rank__Custom_,
+           MR_MEMBER29.MBRSHP_NO  as  Bupa_ID,
+           MR_MEMBER29.SEX  as  Member_Gender,
+           case 
+             when (_years_between({sysdate},MR_MEMBER29.DOB) <= 10) then '0 to 10'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) between 11 and 20) then '11 to 20'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) between 21 and 30) then '21 to 30'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) between 31 and 40) then '31 to 40'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) between 41 and 50) then '41 to 50'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) between 51 and 60) then '51 to 60'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) > 60) then '> 60'
+             else 'Unknown'
+           end  as  Age_Group__Custom_,
+           PV_AGREEMENT30.PERIOD_FROM  as  Period_From,
+           PV_AGREEMENT30.PERIOD_TO  as  Period_To,
+           PV_AGREE_PP.PROMPT_PAY_PERIOD  as  PP_Period,
+           RSUM(1  at trim(PV_PROVIDER27.PROV_CODE),case 
+  when PV_PROVIDER27.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER27.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER27.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER27.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK28.PV_RANK)
+end,case 
+  when case 
+        when PV_PROVIDER27.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER27.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER27.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER27.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK28.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end,MR_MEMBER29.MBRSHP_NO,MR_MEMBER29.SEX,case 
+  when (_years_between({sysdate},MR_MEMBER29.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) > 60) then '> 60'
+  else 'Unknown'
+end,PV_AGREEMENT30.PERIOD_FROM,PV_AGREEMENT30.PERIOD_TO,PV_AGREE_PP.PROMPT_PAY_PERIOD  for trim(PV_PROVIDER27.PROV_CODE),case 
+  when PV_PROVIDER27.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER27.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER27.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER27.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK28.PV_RANK)
+end,case 
+  when case 
+        when PV_PROVIDER27.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER27.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER27.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER27.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK28.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end,MR_MEMBER29.MBRSHP_NO,MR_MEMBER29.SEX,case 
+  when (_years_between({sysdate},MR_MEMBER29.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) > 60) then '> 60'
+  else 'Unknown'
+end  order by trim(PV_PROVIDER27.PROV_CODE) asc,case 
+  when PV_PROVIDER27.PV_RANK = 'T20' then 'a. Top 20'
+  when PV_PROVIDER27.PV_RANK = 'T50' then 'b. Top 50'
+  when PV_PROVIDER27.PV_RANK = 'T100' then 'c. Top 100'
+  when PV_PROVIDER27.PV_RANK = 'A100' then 'd. Above 100'
+  else ('e. ' || SY_PROVIDER_RANK28.PV_RANK)
+end asc,case 
+  when case 
+        when PV_PROVIDER27.PV_RANK = 'T20' then 'a. Top 20'
+        when PV_PROVIDER27.PV_RANK = 'T50' then 'b. Top 50'
+        when PV_PROVIDER27.PV_RANK = 'T100' then 'c. Top 100'
+        when PV_PROVIDER27.PV_RANK = 'A100' then 'd. Above 100'
+        else ('e. ' || SY_PROVIDER_RANK28.PV_RANK)
+      end = 'e. Governmental' then 'Government'
+  else 'Non-Government'
+end asc,MR_MEMBER29.MBRSHP_NO asc,MR_MEMBER29.SEX asc,case 
+  when (_years_between({sysdate},MR_MEMBER29.DOB) <= 10) then '0 to 10'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 11 and 20) then '11 to 20'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 21 and 30) then '21 to 30'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 31 and 40) then '31 to 40'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 41 and 50) then '41 to 50'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) between 51 and 60) then '51 to 60'
+  when (_years_between({sysdate},MR_MEMBER29.DOB) > 60) then '> 60'
+  else 'Unknown'
+end asc,PV_AGREEMENT30.PERIOD_FROM asc,PV_AGREEMENT30.PERIOD_TO asc,PV_AGREE_PP.PROMPT_PAY_PERIOD asc  local)  as  sc
+     from 
+           BUPAProd..CSR.CT_CONTACT CT_CONTACT
+            left outer join 
+           MR_MEMBER29
+            on ((CT_CONTACT.CONT_NO = MR_MEMBER29.CONT_NO) and (CT_CONTACT.MBR_NO = MR_MEMBER29.MBR_NO))
+            left outer join 
+           (
+               PV_PROVIDER27
+                join 
+               PV_AGREEMENT30
+                on (PV_PROVIDER27.PROV_CODE = PV_AGREEMENT30.PROV_CODE)
+           )
+            on (CT_CONTACT.PROV_CODE = PV_PROVIDER27.PROV_CODE)
+            left outer join 
+           BUPAProd..CSR.PV_AGREE_PP PV_AGREE_PP
+            on (PV_AGREEMENT30.AGREE_ID = PV_AGREE_PP.AGREE_ID)
+            left outer join 
+           SY_PROVIDER_RANK28
+            on (PV_PROVIDER27.PV_RANK = SY_PROVIDER_RANK28.SYS_CODE)
+     where 
+           (trim(PV_PROVIDER27.PROV_CODE) in ('20088'))
+     group by 
+           trim(PV_PROVIDER27.PROV_CODE),
+           case 
+             when PV_PROVIDER27.PV_RANK = 'T20' then 'a. Top 20'
+             when PV_PROVIDER27.PV_RANK = 'T50' then 'b. Top 50'
+             when PV_PROVIDER27.PV_RANK = 'T100' then 'c. Top 100'
+             when PV_PROVIDER27.PV_RANK = 'A100' then 'd. Above 100'
+             else ('e. ' || SY_PROVIDER_RANK28.PV_RANK)
+           end,
+           case 
+             when case 
+                   when PV_PROVIDER27.PV_RANK = 'T20' then 'a. Top 20'
+                   when PV_PROVIDER27.PV_RANK = 'T50' then 'b. Top 50'
+                   when PV_PROVIDER27.PV_RANK = 'T100' then 'c. Top 100'
+                   when PV_PROVIDER27.PV_RANK = 'A100' then 'd. Above 100'
+                   else ('e. ' || SY_PROVIDER_RANK28.PV_RANK)
+                 end = 'e. Governmental' then 'Government'
+             else 'Non-Government'
+           end,
+           MR_MEMBER29.MBRSHP_NO,
+           MR_MEMBER29.SEX,
+           case 
+             when (_years_between({sysdate},MR_MEMBER29.DOB) <= 10) then '0 to 10'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) between 11 and 20) then '11 to 20'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) between 21 and 30) then '21 to 30'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) between 31 and 40) then '31 to 40'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) between 41 and 50) then '41 to 50'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) between 51 and 60) then '51 to 60'
+             when (_years_between({sysdate},MR_MEMBER29.DOB) > 60) then '> 60'
+             else 'Unknown'
+           end,
+           PV_AGREEMENT30.PERIOD_FROM,
+           PV_AGREEMENT30.PERIOD_TO,
+           PV_AGREE_PP.PROMPT_PAY_PERIOD
+     order by 
+           Provider_Code asc,
+           Provider_Rank asc,
+           Provider_Rank__Custom_ asc,
+           Bupa_ID asc,
+           Member_Gender asc,
+           Age_Group__Custom_ asc,
+           Period_From asc,
+           Period_To asc,
+           PP_Period asc
+    ),
+MR_MEMBER33 as 
+    (select 
+           MR_MEMBER.CONT_NO,
+           MR_MEMBER.MBR_NO,
+           MR_MEMBER.MBRSHP_NO,
+           MR_MEMBER.SEX,
+           MR_MEMBER.DOB
+     from 
+            ( 
+                   ( 
+                          ( 
+                                 ( 
+                                        ( 
+                                              BUPAProd..CSR.MR_MEMBER MR_MEMBER
+                                        left outer  join 
+                                              BUPAProd..CSR.SY_SYS_CODE SY_SYS_CODE
+                                        on MR_MEMBER.MARITAL_STATUS = RTRIM ( SY_SYS_CODE.SYS_CODE )  and SY_SYS_CODE.SYS_TYPE = 'MARITAL_STATUS      ' ) 
+                                 left outer  join 
+                                       BUPAProd..CSR.MR_PROFESSION PROF
+                                 on MR_MEMBER.CCHI_JOB_CODE = PROF.PROF_CODE ) 
+                          left outer  join 
+                                BUPAProd..CSR.SY_SYS_CODE DR
+                          on MR_MEMBER.DEL_REASON = RTRIM ( DR.SYS_CODE )  and DR.SYS_TYPE = 'WEB_SUB_REASON      ' ) 
+                   left outer  join 
+                         BUPAProd..CSR.CT_PCC_MANAGER pcc
+                   on MR_MEMBER.PCC_MGR = pcc.EMP_ID ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_COUNTRY_CODE SY_COUNTRY_CODE
+            on MR_MEMBER.CTRY_CODE = SY_COUNTRY_CODE.SYS_CODE ) 
+     where MR_MEMBER.CONT_NO <> '49738600'),
+PV_PROVIDER31 as 
+    (select 
+           PV_PROVIDER.PROV_CODE,
+           PV_PROVIDER.PV_RANK
+     from 
+            ( 
+                   ( 
+                          ( 
+                                 ( 
+                                        ( 
+                                               ( 
+                                                      ( 
+                                                            BUPAProd..CSR.PV_PROVIDER PV_PROVIDER
+                                                      inner  join 
+                                                            BUPAProd..CSR.DC_DISTRICT DC_DISTRICT
+                                                      on PV_PROVIDER.CORR_DIST_CODE = DC_DISTRICT.DIST_CODE ) 
+                                               left outer  join 
+                                                     BUPAProd..CSR.SY_PROVIDER_LEVEL SY_PROVIDER_LEVEL1
+                                               on PV_PROVIDER.PROV_LEVEL = SY_PROVIDER_LEVEL1.SYS_CODE ) 
+                                        left outer  join 
+                                              BUPAProd..CSR.SY_PRACTICE_TYPE SY_PRACTICE_TYPE
+                                        on PV_PROVIDER.PRACTICE_TYPE = SY_PRACTICE_TYPE.SYS_CODE ) 
+                                 left outer  join 
+                                       BUPAProd..CSR.PV_PROV_LVL_MVMNT
+                                 on PV_PROVIDER.PROV_CODE = PV_PROV_LVL_MVMNT.PROV_CODE ) 
+                          left outer  join 
+                                BUPAProd..CSR.SY_PROVIDER_LEVEL SY_PROVIDER_LEVEL2
+                          on PV_PROV_LVL_MVMNT.PROV_LEVEL = SY_PROVIDER_LEVEL2.SYS_CODE ) 
+                   left outer  join 
+                         BUPAProd..CSR.SY_SYS_CODE VRS
+                   on trim ( VRS.SYS_CODE )  = PV_PROVIDER.VAT_REG_STATUS and trim ( VRS.SYS_TYPE )  = 'VAT_REG_STATUS' ) 
+            left outer  join 
+                  BUPAProd..CSR.SY_SYS_CODE CTC
+            on trim ( CTC.SYS_CODE )  = PV_PROVIDER.CTRY_CODE and trim ( CTC.SYS_TYPE )  = 'COUNTRY_CODE' ) 
+     where PV_PROV_LVL_MVMNT.END_DATE is null and PV_PROVIDER.PRACTICE_TYPE <> 280),
+SY_PROVIDER_RANK32 as 
+    (select 
+           SYS_CODE,
+           EDESC as PV_RANK
+     from 
+           BUPAProd..CSR.SY_SYS_CODE
+     where SYS_TYPE = 'PV_RANK'),
+D6 as 
+    (select distinct 
+           trim(PV_PROVIDER31.PROV_CODE)  as  Provider_Code,
+           case 
+             when PV_PROVIDER31.PV_RANK = 'T20' then 'a. Top 20'
+             when PV_PROVIDER31.PV_RANK = 'T50' then 'b. Top 50'
+             when PV_PROVIDER31.PV_RANK = 'T100' then 'c. Top 100'
+             when PV_PROVIDER31.PV_RANK = 'A100' then 'd. Above 100'
+             else ('e. ' || SY_PROVIDER_RANK32.PV_RANK)
+           end  as  Provider_Rank,
+           case 
+             when case 
+                   when PV_PROVIDER31.PV_RANK = 'T20' then 'a. Top 20'
+                   when PV_PROVIDER31.PV_RANK = 'T50' then 'b. Top 50'
+                   when PV_PROVIDER31.PV_RANK = 'T100' then 'c. Top 100'
+                   when PV_PROVIDER31.PV_RANK = 'A100' then 'd. Above 100'
+                   else ('e. ' || SY_PROVIDER_RANK32.PV_RANK)
+                 end = 'e. Governmental' then 'Government'
+             else 'Non-Government'
+           end  as  Provider_Rank__Custom_,
+           PV_NETWORK_SET.NET_TYPE  as  Network_Type,
+           case 
+             when (PV_NETWORK_SET.NET_TYPE in ('NW1','NW2','NW3')) then 'NW 1,2,3'
+             when (PV_NETWORK_SET.NET_TYPE in ('NW4','NW5')) then 'NW 4,5'
+             when PV_NETWORK_SET.NET_TYPE = 'NW6' then 'NW6'
+             when PV_NETWORK_SET.NET_TYPE = 'NW7' then 'NW7'
+             when (PV_NETWORK_SET.NET_TYPE in ('NWM','NWR','NWS')) then 'NW M,S,R'
+             else 'Others'
+           end  as  Network_Group__Custom_,
+           MR_MEMBER33.MBRSHP_NO  as  Bupa_ID,
+           MR_MEMBER33.SEX  as  Member_Gender,
+           case 
+             when (_years_between({sysdate},MR_MEMBER33.DOB) <= 10) then '0 to 10'
+             when (_years_between({sysdate},MR_MEMBER33.DOB) between 11 and 20) then '11 to 20'
+             when (_years_between({sysdate},MR_MEMBER33.DOB) between 21 and 30) then '21 to 30'
+             when (_years_between({sysdate},MR_MEMBER33.DOB) between 31 and 40) then '31 to 40'
+             when (_years_between({sysdate},MR_MEMBER33.DOB) between 41 and 50) then '41 to 50'
+             when (_years_between({sysdate},MR_MEMBER33.DOB) between 51 and 60) then '51 to 60'
+             when (_years_between({sysdate},MR_MEMBER33.DOB) > 60) then '> 60'
+             else 'Unknown'
+           end  as  Age_Group__Custom_
+     from 
+           BUPAProd..CSR.CT_CONTACT CT_CONTACT
+            left outer join 
+           MR_MEMBER33
+            on ((CT_CONTACT.CONT_NO = MR_MEMBER33.CONT_NO) and (CT_CONTACT.MBR_NO = MR_MEMBER33.MBR_NO))
+            left outer join 
+           (
+               BUPAProd..CSR.PV_NETWORK_SET PV_NETWORK_SET
+                join 
+               BUPAProd..CSR.PV_NET_SET_PROV PV_NET_SET_PROV
+                on (PV_NETWORK_SET.NET_SET_ID = PV_NET_SET_PROV.NET_SET_ID)
+                join 
+               PV_PROVIDER31
+                on (PV_NET_SET_PROV.PROV_CODE = PV_PROVIDER31.PROV_CODE)
+           )
+            on (CT_CONTACT.PROV_CODE = PV_PROVIDER31.PROV_CODE)
+            left outer join 
+           SY_PROVIDER_RANK32
+            on (PV_PROVIDER31.PV_RANK = SY_PROVIDER_RANK32.SYS_CODE)
+     where 
+           (trim(PV_PROVIDER31.PROV_CODE) in ('20088'))
+    )
+select 
+       coalesce(D.Batch_ID,D3.Batch_ID,D4.Batch_ID)  as  Batch_ID,
+       coalesce(D.Batch_Received_Date,D3.Batch_Received_Date,D4.Batch_Received_Date)  as  Batch_Received_Date,
+       coalesce(D.c3,D3.c3,D4.c3)  as  c3,
+       coalesce(D.Create_Date,D3.Create_Date,D4.Create_Date)  as  Create_Date,
+       coalesce(D.C_1_Sent_to_Provider_Date,D3.C_1_Sent_to_Provider_Date,D4.C_1_Sent_to_Provider_Date)  as  C_1_Sent_to_Provider_Date,
+       D.Payment_Date  as  Payment_Date,
+       coalesce(D.Batch_Period,D3.Batch_Period,D4.Batch_Period)  as  Batch_Period,
+       coalesce(D.Date_of_Batch__Custom_,D3.Date_of_Batch__Custom_,D4.Date_of_Batch__Custom_)  as  Date_of_Batch__Custom_,
+       coalesce(D.Provider_Code,D3.Provider_Code,D4.Provider_Code,D5.Provider_Code,D6.Provider_Code)  as  Provider_Code,
+       D5.Period_From  as  Period_From,
+       D.Payment_Type  as  Payment_Type,
+       D5.Period_To  as  Period_To,
+       D5.PP_Period  as  PP_Period,
+       coalesce(D.Batch_Type,D3.Batch_Type,D4.Batch_Type)  as  Batch_Type,
+       coalesce(D.PP_Batch_Type__Custom_,D3.PP_Batch_Type__Custom_,D4.PP_Batch_Type__Custom_)  as  PP_Batch_Type__Custom_,
+       coalesce(D.Batch_Type_2,D3.Batch_Type_2,D4.Batch_Type_2)  as  Batch_Type_2,
+       coalesce(D.Customer_Flag__Custom_,D3.Customer_Flag__Custom_,D4.Customer_Flag__Custom_)  as  Customer_Flag__Custom_,
+       coalesce(D.Batch_Status,D3.Batch_Status,D4.Batch_Status)  as  Batch_Status,
+       coalesce(D.Claim_Submission_Type,D3.Claim_Submission_Type,D4.Claim_Submission_Type)  as  Claim_Submission_Type,
+       coalesce(D.Provider_Rank,D3.Provider_Rank,D4.Provider_Rank,D5.Provider_Rank,D6.Provider_Rank)  as  Provider_Rank,
+       coalesce(D.Provider_Rank__Custom_,D3.Provider_Rank__Custom_,D4.Provider_Rank__Custom_,D5.Provider_Rank__Custom_,D6.Provider_Rank__Custom_)  as  Provider_Rank__Custom_,
+       D4.Statement_Type  as  Statement_Type,
+       D4.Statement_Type__Custom_  as  Statement_Type__Custom_,
+       D4.Referral_Batch  as  Referral_Batch,
+       D4.Referral_Batch__Custom_  as  Referral_Batch__Custom_,
+       coalesce(D.TPA_Batch,D3.TPA_Batch,D4.TPA_Batch)  as  TPA_Batch,
+       coalesce(D.TPA_Batch__Custom_,D3.TPA_Batch__Custom_,D4.TPA_Batch__Custom_)  as  TPA_Batch__Custom_,
+       D3.Contract_No  as  Contract_No,
+       D3.Contract_Type  as  Contract_Type,
+       D3.Contract_Type__Custom_  as  Contract_Type__Custom_,
+       coalesce(D3.Network_Type,D6.Network_Type)  as  Network_Type,
+       coalesce(D3.Network_Group__Custom_,D6.Network_Group__Custom_)  as  Network_Group__Custom_,
+       coalesce(D.Bupa_ID,D3.Bupa_ID,D4.Bupa_ID,D5.Bupa_ID,D6.Bupa_ID)  as  Bupa_ID,
+       coalesce(D.Member_Gender,D3.Member_Gender,D4.Member_Gender,D5.Member_Gender,D6.Member_Gender)  as  Member_Gender,
+       coalesce(D.Age_Group__Custom_,D3.Age_Group__Custom_,D4.Age_Group__Custom_,D5.Age_Group__Custom_,D6.Age_Group__Custom_)  as  Age_Group__Custom_,
+       D3.ICD10  as  ICD10,
+       D3.ICD___Custom_  as  ICD___Custom_,
+       D3.Voucher_No  as  Voucher_No,
+       D3.Benefit_Type  as  Benefit_Type,
+       coalesce(D.Delay_Reason__Custom_,D3.Delay_Reason__Custom_,D4.Delay_Reason__Custom_)  as  Delay_Reason__Custom_,
+       D4.STM_ID  as  STM_ID,
+       D3.PRESENTED_NET_BILLED2  as  PRESENTED_NET_BILLED2,
+       coalesce(D.PROV_Netbilled,D3.PROV_Netbilled,D4.PROV_Netbilled)  as  PROV_Netbilled,
+       coalesce(D.VAT_AMT,D3.VAT_AMT,D4.VAT_AMT)  as  VAT_AMT,
+       XSUM(coalesce(D.rc,D3.rc,D4.rc)  for coalesce(D.Batch_ID,D3.Batch_ID,D4.Batch_ID),coalesce(D.Batch_Received_Date,D3.Batch_Received_Date,D4.Batch_Received_Date),coalesce(D.c3,D3.c3,D4.c3),coalesce(D.Create_Date,D3.Create_Date,D4.Create_Date),coalesce(D.C_1_Sent_to_Provider_Date,D3.C_1_Sent_to_Provider_Date,D4.C_1_Sent_to_Provider_Date),coalesce(D.Batch_Period,D3.Batch_Period,D4.Batch_Period),coalesce(D.Date_of_Batch__Custom_,D3.Date_of_Batch__Custom_,D4.Date_of_Batch__Custom_),coalesce(D.Provider_Code,D3.Provider_Code,D4.Provider_Code,D5.Provider_Code,D6.Provider_Code),coalesce(D.Batch_Type,D3.Batch_Type,D4.Batch_Type),coalesce(D.PP_Batch_Type__Custom_,D3.PP_Batch_Type__Custom_,D4.PP_Batch_Type__Custom_),coalesce(D.Batch_Type_2,D3.Batch_Type_2,D4.Batch_Type_2),coalesce(D.Customer_Flag__Custom_,D3.Customer_Flag__Custom_,D4.Customer_Flag__Custom_),coalesce(D.Batch_Status,D3.Batch_Status,D4.Batch_Status),coalesce(D.Claim_Submission_Type,D3.Claim_Submission_Type,D4.Claim_Submission_Type),coalesce(D.Provider_Rank,D3.Provider_Rank,D4.Provider_Rank,D5.Provider_Rank,D6.Provider_Rank),coalesce(D.Provider_Rank__Custom_,D3.Provider_Rank__Custom_,D4.Provider_Rank__Custom_,D5.Provider_Rank__Custom_,D6.Provider_Rank__Custom_),coalesce(D.TPA_Batch,D3.TPA_Batch,D4.TPA_Batch),coalesce(D.TPA_Batch__Custom_,D3.TPA_Batch__Custom_,D4.TPA_Batch__Custom_),D3.Contract_No,D3.Contract_Type,D3.Contract_Type__Custom_,coalesce(D3.Network_Type,D6.Network_Type),coalesce(D3.Network_Group__Custom_,D6.Network_Group__Custom_),coalesce(D.Bupa_ID,D3.Bupa_ID,D4.Bupa_ID,D5.Bupa_ID,D6.Bupa_ID),coalesce(D.Member_Gender,D3.Member_Gender,D4.Member_Gender,D5.Member_Gender,D6.Member_Gender),coalesce(D.Age_Group__Custom_,D3.Age_Group__Custom_,D4.Age_Group__Custom_,D5.Age_Group__Custom_,D6.Age_Group__Custom_),D3.ICD10,D3.ICD___Custom_,D3.Voucher_No,D3.Benefit_Type,coalesce(D.Delay_Reason__Custom_,D3.Delay_Reason__Custom_,D4.Delay_Reason__Custom_),D3.PRESENTED_NET_BILLED2,coalesce(D.PROV_Netbilled,D3.PROV_Netbilled,D4.PROV_Netbilled),coalesce(D.VAT_AMT,D3.VAT_AMT,D4.VAT_AMT),coalesce(D.CCU_Invoice_Count,D3.CCU_Invoice_Count,D4.CCU_Invoice_Count) )  as  PROV_NB___VAT__Custom_,
+       case when (XMIN(coalesce(D.Batch_Status,D3.Batch_Status,D4.Batch_Status)  for coalesce(D.Batch_ID,D3.Batch_ID,D4.Batch_ID),coalesce(D.Batch_Received_Date,D3.Batch_Received_Date,D4.Batch_Received_Date),coalesce(D.c3,D3.c3,D4.c3),coalesce(D.Create_Date,D3.Create_Date,D4.Create_Date),coalesce(D.C_1_Sent_to_Provider_Date,D3.C_1_Sent_to_Provider_Date,D4.C_1_Sent_to_Provider_Date),coalesce(D.Batch_Period,D3.Batch_Period,D4.Batch_Period),coalesce(D.Date_of_Batch__Custom_,D3.Date_of_Batch__Custom_,D4.Date_of_Batch__Custom_),coalesce(D.Provider_Code,D3.Provider_Code,D4.Provider_Code,D5.Provider_Code,D6.Provider_Code),coalesce(D.Batch_Type,D3.Batch_Type,D4.Batch_Type),coalesce(D.PP_Batch_Type__Custom_,D3.PP_Batch_Type__Custom_,D4.PP_Batch_Type__Custom_),coalesce(D.Batch_Type_2,D3.Batch_Type_2,D4.Batch_Type_2),coalesce(D.Customer_Flag__Custom_,D3.Customer_Flag__Custom_,D4.Customer_Flag__Custom_),coalesce(D.Batch_Status,D3.Batch_Status,D4.Batch_Status),coalesce(D.Claim_Submission_Type,D3.Claim_Submission_Type,D4.Claim_Submission_Type),coalesce(D.Provider_Rank,D3.Provider_Rank,D4.Provider_Rank,D5.Provider_Rank,D6.Provider_Rank),coalesce(D.Provider_Rank__Custom_,D3.Provider_Rank__Custom_,D4.Provider_Rank__Custom_,D5.Provider_Rank__Custom_,D6.Provider_Rank__Custom_),coalesce(D.TPA_Batch,D3.TPA_Batch,D4.TPA_Batch),coalesce(D.TPA_Batch__Custom_,D3.TPA_Batch__Custom_,D4.TPA_Batch__Custom_),D3.Contract_No,D3.Contract_Type,D3.Contract_Type__Custom_,coalesce(D3.Network_Type,D6.Network_Type),coalesce(D3.Network_Group__Custom_,D6.Network_Group__Custom_),coalesce(D.Bupa_ID,D3.Bupa_ID,D4.Bupa_ID,D5.Bupa_ID,D6.Bupa_ID),coalesce(D.Member_Gender,D3.Member_Gender,D4.Member_Gender,D5.Member_Gender,D6.Member_Gender),coalesce(D.Age_Group__Custom_,D3.Age_Group__Custom_,D4.Age_Group__Custom_,D5.Age_Group__Custom_,D6.Age_Group__Custom_),D3.ICD10,D3.ICD___Custom_,D3.Voucher_No,D3.Benefit_Type,coalesce(D.Delay_Reason__Custom_,D3.Delay_Reason__Custom_,D4.Delay_Reason__Custom_),D3.PRESENTED_NET_BILLED2,coalesce(D.PROV_Netbilled,D3.PROV_Netbilled,D4.PROV_Netbilled),coalesce(D.VAT_AMT,D3.VAT_AMT,D4.VAT_AMT),coalesce(D.CCU_Invoice_Count,D3.CCU_Invoice_Count,D4.CCU_Invoice_Count) ) in ('Paid','Statement')) then XSUM(coalesce(D.PROV_Netbilled,D3.PROV_Netbilled,D4.PROV_Netbilled)  for coalesce(D.Batch_ID,D3.Batch_ID,D4.Batch_ID),coalesce(D.Batch_Received_Date,D3.Batch_Received_Date,D4.Batch_Received_Date),coalesce(D.c3,D3.c3,D4.c3),coalesce(D.Create_Date,D3.Create_Date,D4.Create_Date),coalesce(D.C_1_Sent_to_Provider_Date,D3.C_1_Sent_to_Provider_Date,D4.C_1_Sent_to_Provider_Date),coalesce(D.Batch_Period,D3.Batch_Period,D4.Batch_Period),coalesce(D.Date_of_Batch__Custom_,D3.Date_of_Batch__Custom_,D4.Date_of_Batch__Custom_),coalesce(D.Provider_Code,D3.Provider_Code,D4.Provider_Code,D5.Provider_Code,D6.Provider_Code),coalesce(D.Batch_Type,D3.Batch_Type,D4.Batch_Type),coalesce(D.PP_Batch_Type__Custom_,D3.PP_Batch_Type__Custom_,D4.PP_Batch_Type__Custom_),coalesce(D.Batch_Type_2,D3.Batch_Type_2,D4.Batch_Type_2),coalesce(D.Customer_Flag__Custom_,D3.Customer_Flag__Custom_,D4.Customer_Flag__Custom_),coalesce(D.Batch_Status,D3.Batch_Status,D4.Batch_Status),coalesce(D.Claim_Submission_Type,D3.Claim_Submission_Type,D4.Claim_Submission_Type),coalesce(D.Provider_Rank,D3.Provider_Rank,D4.Provider_Rank,D5.Provider_Rank,D6.Provider_Rank),coalesce(D.Provider_Rank__Custom_,D3.Provider_Rank__Custom_,D4.Provider_Rank__Custom_,D5.Provider_Rank__Custom_,D6.Provider_Rank__Custom_),coalesce(D.TPA_Batch,D3.TPA_Batch,D4.TPA_Batch),coalesce(D.TPA_Batch__Custom_,D3.TPA_Batch__Custom_,D4.TPA_Batch__Custom_),D3.Contract_No,D3.Contract_Type,D3.Contract_Type__Custom_,coalesce(D3.Network_Type,D6.Network_Type),coalesce(D3.Network_Group__Custom_,D6.Network_Group__Custom_),coalesce(D.Bupa_ID,D3.Bupa_ID,D4.Bupa_ID,D5.Bupa_ID,D6.Bupa_ID),coalesce(D.Member_Gender,D3.Member_Gender,D4.Member_Gender,D5.Member_Gender,D6.Member_Gender),coalesce(D.Age_Group__Custom_,D3.Age_Group__Custom_,D4.Age_Group__Custom_,D5.Age_Group__Custom_,D6.Age_Group__Custom_),D3.ICD10,D3.ICD___Custom_,D3.Voucher_No,D3.Benefit_Type,coalesce(D.Delay_Reason__Custom_,D3.Delay_Reason__Custom_,D4.Delay_Reason__Custom_),D3.PRESENTED_NET_BILLED2,coalesce(D.PROV_Netbilled,D3.PROV_Netbilled,D4.PROV_Netbilled),coalesce(D.VAT_AMT,D3.VAT_AMT,D4.VAT_AMT),coalesce(D.CCU_Invoice_Count,D3.CCU_Invoice_Count,D4.CCU_Invoice_Count) )
+         else 0
+       end  as  Process_NETBilling__Custom_,
+       D4.NET_Billed  as  NET_Billed,
+       coalesce(D.CCU_Invoice_Count,D3.CCU_Invoice_Count,D4.CCU_Invoice_Count)  as  CCU_Invoice_Count,
+       D4.A__Appropriateness_of_Care  as  A__Appropriateness_of_Care,
+       D4.B__Technical_Contractual  as  B__Technical_Contractual,
+       D4.B_1_Billed_Over_Agreed_Price  as  B_1_Billed_Over_Agreed_Price,
+       D4.C__Policy_Compliance  as  C__Policy_Compliance,
+       D4.D__Pre_Authorisation  as  D__Pre_Authorisation,
+       D4.E_Unwarranted_Variations  as  E_Unwarranted_Variations,
+       D4.H__Pharmacy_Benefit_Management  as  H__Pharmacy_Benefit_Management,
+       D4.Invalid_Membership  as  Invalid_Membership,
+       D4.Difference_in_Computation  as  Difference_in_Computation,
+       D4.Claims_Not_Received  as  Claims_Not_Received,
+       D4.Invalid_Service_Code  as  Invalid_Service_Code,
+       D4.Late_Submssion  as  Late_Submssion,
+       D4.Pending  as  Pending,
+       D4.Discount_Difference  as  Discount_Difference,
+       D4.Deductible_Difference  as  Deductible_Difference,
+       D4.APPROVED_to_Pay  as  APPROVED_to_Pay,
+       D4.Total_Claim_Rejection  as  Total_Claim_Rejection
+ from 
+       D3
+        full outer join 
+       D
+        on ((((((((((((((((((((((((((D3.Batch_ID = D.Batch_ID) and (D3.Batch_Received_Date = D.Batch_Received_Date)) and (D3.c3 = D.c3)) and (D3.Create_Date = D.Create_Date)) and (D3.C_1_Sent_to_Provider_Date = D.C_1_Sent_to_Provider_Date)) and (D3.Batch_Period = D.Batch_Period)) and (D3.Date_of_Batch__Custom_ = D.Date_of_Batch__Custom_)) and (D3.Provider_Code = D.Provider_Code)) and (D3.Batch_Type = D.Batch_Type)) and (D3.PP_Batch_Type__Custom_ = D.PP_Batch_Type__Custom_)) and (D3.Batch_Type_2 = D.Batch_Type_2)) and (D3.Customer_Flag__Custom_ = D.Customer_Flag__Custom_)) and (D3.Batch_Status = D.Batch_Status)) and (D3.Claim_Submission_Type = D.Claim_Submission_Type)) and (D3.Provider_Rank = D.Provider_Rank)) and (D3.Provider_Rank__Custom_ = D.Provider_Rank__Custom_)) and (D3.TPA_Batch = D.TPA_Batch)) and (D3.TPA_Batch__Custom_ = D.TPA_Batch__Custom_)) and (D3.Bupa_ID = D.Bupa_ID)) and (D3.Member_Gender = D.Member_Gender)) and (D3.Age_Group__Custom_ = D.Age_Group__Custom_)) and (D3.Delay_Reason__Custom_ = D.Delay_Reason__Custom_)) and (D3.PROV_Netbilled = D.PROV_Netbilled)) and (D3.VAT_AMT = D.VAT_AMT)) and (D3.CCU_Invoice_Count = D.CCU_Invoice_Count)) and (D3.sc = D.sc))
+        full outer join 
+       D4
+        on ((((((((((((((((((((((((((coalesce(D3.Batch_ID,D.Batch_ID) = D4.Batch_ID) and (coalesce(D3.Batch_Received_Date,D.Batch_Received_Date) = D4.Batch_Received_Date)) and (coalesce(D3.c3,D.c3) = D4.c3)) and (coalesce(D3.Create_Date,D.Create_Date) = D4.Create_Date)) and (coalesce(D3.C_1_Sent_to_Provider_Date,D.C_1_Sent_to_Provider_Date) = D4.C_1_Sent_to_Provider_Date)) and (coalesce(D3.Batch_Period,D.Batch_Period) = D4.Batch_Period)) and (coalesce(D3.Date_of_Batch__Custom_,D.Date_of_Batch__Custom_) = D4.Date_of_Batch__Custom_)) and (coalesce(D3.Provider_Code,D.Provider_Code) = D4.Provider_Code)) and (coalesce(D3.Batch_Type,D.Batch_Type) = D4.Batch_Type)) and (coalesce(D3.PP_Batch_Type__Custom_,D.PP_Batch_Type__Custom_) = D4.PP_Batch_Type__Custom_)) and (coalesce(D3.Batch_Type_2,D.Batch_Type_2) = D4.Batch_Type_2)) and (coalesce(D3.Customer_Flag__Custom_,D.Customer_Flag__Custom_) = D4.Customer_Flag__Custom_)) and (coalesce(D3.Batch_Status,D.Batch_Status) = D4.Batch_Status)) and (coalesce(D3.Claim_Submission_Type,D.Claim_Submission_Type) = D4.Claim_Submission_Type)) and (coalesce(D3.Provider_Rank,D.Provider_Rank) = D4.Provider_Rank)) and (coalesce(D3.Provider_Rank__Custom_,D.Provider_Rank__Custom_) = D4.Provider_Rank__Custom_)) and (coalesce(D3.TPA_Batch,D.TPA_Batch) = D4.TPA_Batch)) and (coalesce(D3.TPA_Batch__Custom_,D.TPA_Batch__Custom_) = D4.TPA_Batch__Custom_)) and (coalesce(D3.Bupa_ID,D.Bupa_ID) = D4.Bupa_ID)) and (coalesce(D3.Member_Gender,D.Member_Gender) = D4.Member_Gender)) and (coalesce(D3.Age_Group__Custom_,D.Age_Group__Custom_) = D4.Age_Group__Custom_)) and (coalesce(D3.Delay_Reason__Custom_,D.Delay_Reason__Custom_) = D4.Delay_Reason__Custom_)) and (coalesce(D3.PROV_Netbilled,D.PROV_Netbilled) = D4.PROV_Netbilled)) and (coalesce(D3.VAT_AMT,D.VAT_AMT) = D4.VAT_AMT)) and (coalesce(D3.CCU_Invoice_Count,D.CCU_Invoice_Count) = D4.CCU_Invoice_Count)) and (coalesce(D3.sc,D.sc) = D4.sc))
+        full outer join 
+       D5
+        on (((((((coalesce(D3.Provider_Code,D.Provider_Code,D4.Provider_Code) = D5.Provider_Code) and (coalesce(D3.Provider_Rank,D.Provider_Rank,D4.Provider_Rank) = D5.Provider_Rank)) and (coalesce(D3.Provider_Rank__Custom_,D.Provider_Rank__Custom_,D4.Provider_Rank__Custom_) = D5.Provider_Rank__Custom_)) and (coalesce(D3.Bupa_ID,D.Bupa_ID,D4.Bupa_ID) = D5.Bupa_ID)) and (coalesce(D3.Member_Gender,D.Member_Gender,D4.Member_Gender) = D5.Member_Gender)) and (coalesce(D3.Age_Group__Custom_,D.Age_Group__Custom_,D4.Age_Group__Custom_) = D5.Age_Group__Custom_)) and (D3.sc38 = D5.sc))
+        full outer join 
+       D6
+        on ((((((((coalesce(D3.Provider_Code,D.Provider_Code,D4.Provider_Code,D5.Provider_Code) = D6.Provider_Code) and (coalesce(D3.Provider_Rank,D.Provider_Rank,D4.Provider_Rank,D5.Provider_Rank) = D6.Provider_Rank)) and (coalesce(D3.Provider_Rank__Custom_,D.Provider_Rank__Custom_,D4.Provider_Rank__Custom_,D5.Provider_Rank__Custom_) = D6.Provider_Rank__Custom_)) and (D3.Network_Type = D6.Network_Type)) and (D3.Network_Group__Custom_ = D6.Network_Group__Custom_)) and (coalesce(D3.Bupa_ID,D.Bupa_ID,D4.Bupa_ID,D5.Bupa_ID) = D6.Bupa_ID)) and (coalesce(D3.Member_Gender,D.Member_Gender,D4.Member_Gender,D5.Member_Gender) = D6.Member_Gender)) and (coalesce(D3.Age_Group__Custom_,D.Age_Group__Custom_,D4.Age_Group__Custom_,D5.Age_Group__Custom_) = D6.Age_Group__Custom_))
